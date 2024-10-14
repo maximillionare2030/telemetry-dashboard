@@ -5,7 +5,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   Box,
-  Container,
   Center,
   Text,
   Grid,
@@ -13,29 +12,29 @@ import {
 } from "@chakra-ui/react";
 
 function Header() {
+  const margin = "1.5rem"; // Reusable margin value
+
   return (
-    <Flex height="100vh"> {/* Set Flex to take full viewport height */}
+    <Flex minHeight="100vh"> {/* Set Flex to take full viewport height */}      
       {/* Sidebar */}
       <Box 
-        width="2.5%" 
+        width={{ base: '10%', md: '2.5%' }} 
         bg="white" 
-        border="1px solid grey" 
-
-        height="100%" // Ensure it takes full height
-        position="fixed" // Make it fixed on the left
-        left="0" // Align it to the left
-        top="0" // Align it to the top
-      >
-        
-      </Box>
-
+        border="1px solid grey"
+        height="100%" 
+        position="fixed" 
+        left="0" 
+        top="0"
+      />
+      
       {/* Main Content */}
       <Box 
         width="100%" 
-        marginLeft="2.5%"// Push content to the right of the sidebar
+        marginLeft={{ base: '10%', md: '2.5%' }}
       >
         <Flex
           as="nav"
+          aria-label="breadcrumb"
           align="center"
           justify="space-between"
           wrap="wrap"
@@ -44,42 +43,53 @@ function Header() {
         >
           <Breadcrumb separator="/" fontSize="1.4rem">
             <BreadcrumbItem>
-              <BreadcrumbLink href='Summary'>Summary</BreadcrumbLink>
+              <BreadcrumbLink href='Summary' aria-label="Navigate to Summary">Summary</BreadcrumbLink>
             </BreadcrumbItem>
 
             <BreadcrumbItem>
-              <BreadcrumbLink href='Power'>Power</BreadcrumbLink>
+              <BreadcrumbLink href='Power' aria-label="Navigate to Power">Power</BreadcrumbLink>
             </BreadcrumbItem>
 
             <BreadcrumbItem>
-              <BreadcrumbLink href='Motor'>Motor</BreadcrumbLink>
+              <BreadcrumbLink href='Motor' aria-label="Navigate to Motor">Motor</BreadcrumbLink>
             </BreadcrumbItem>
 
             <BreadcrumbItem>
-              <BreadcrumbLink href='Microcontroller'>Microcontroller</BreadcrumbLink>
+              <BreadcrumbLink href='Microcontroller' aria-label="Navigate to Microcontroller">Microcontroller</BreadcrumbLink>
             </BreadcrumbItem>
           </Breadcrumb>
         </Flex>
 
         <Flex>
-         <Box width="80%" height="100vh" bg="#f3f3f3" border="1px solid grey" >
-         <Text fontSize="1.5rem" margin="1.5rem 0 0 1.5rem">[Power] Management</Text>
-         <Center margin="1.5rem 1.5rem 1.5rem 1.5rem" border="1px solid grey" padding="0.5rem" width="auto">
-      <Grid templateColumns="repeat(4, 1fr)" gap={5} width="100%">
-        <GridItem h="200px" bg="white.500" border="1px solid grey" />
-        <GridItem h="200px" bg="white.500" border="1px solid grey" />
-        <GridItem h="200px" bg="white.500" border="1px solid grey" />
-        <GridItem h="200px" bg="white.500" border="1px solid grey" />
-      </Grid>
-    </Center>
-       </Box>
+          <Box width="80%" bg="#f3f3f3" border="1px solid grey">
+            <Text fontSize="1.5rem" margin={margin}>[Power] Management</Text>
 
-       <Box width="20%" height="100vh" border="1px solid grey" >
-         <Text></Text>
-       </Box>
+            <Center margin={margin} border="1px solid grey" padding="0.5rem" width="auto">
+              <Grid templateColumns="repeat(4, 1fr)" gap={5} width="100%">
+                <GridItem h="200px" bg="white" border="1px solid grey" />
+                <GridItem h="200px" bg="white" border="1px solid grey" />
+                <GridItem h="200px" bg="white" border="1px solid grey" />
+                <GridItem h="200px" bg="white" border="1px solid grey" />
+              </Grid>
+            </Center>
+
+            <Center margin={margin} border="1px solid grey" padding="0.5rem" width="auto" height="50%">
+              {/* Add your content here */}
+            </Center>
+          </Box>
+
+          {/* Sidebar Modules */}
+          <Box width="20%" border="1px solid grey" justifyContent="center">
+            <Text fontSize="1.5rem" padding="1.0rem" textAlign="center">Modules</Text>
+
+            <Grid templateRows="repeat(4, 1fr)" gap={5} width="100%" padding="0.8rem">
+              <GridItem h="200px" bg="white" border="1px solid grey" />
+              <GridItem h="200px" bg="white" border="1px solid grey" />
+              <GridItem h="200px" bg="white" border="1px solid grey" />
+              <GridItem h="200px" bg="white" border="1px solid grey" />
+            </Grid>
+          </Box>
         </Flex>
-       
-
       </Box>
     </Flex>
   );

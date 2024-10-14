@@ -1,0 +1,19 @@
+**pip install**
+
+fastapi
+uvicorn
+
+**npm install**
+
+ react-router-dom
+ @chakra-ui/react@2.0.2
+ @emotion/react
+ @emotion/styled
+ emotion-theming
+
+
+** To run program, create and activate a virtual environment **
+
+$ python3.10 -m venv venv
+$ source venv/bin/activate
+$ export PYTHONPATH=$PWD
