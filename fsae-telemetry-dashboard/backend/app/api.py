@@ -19,3 +19,7 @@ app.add_middleware(
 @app.get("/", tags = ["root"])
 async def read_drood() -> dict:
     return {"message": "Home Page"}
+
+@app.get("/Influx")
+async def read_drood() -> dict:
+    return {"message": "Influx"}

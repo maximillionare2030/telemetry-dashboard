@@ -2,6 +2,7 @@
 
 fastapi
 uvicorn
+influxdb-client
 
 **npm install**
 
