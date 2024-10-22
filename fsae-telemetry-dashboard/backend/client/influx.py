@@ -14,6 +14,8 @@ class InfluxDBClientHandler:
         self.query_api = self.client.query_api()
 
     def query_motor_data(self, start_time: str, end_time: str) -> List[MotorData]:
+        # This function queries the InfluxDB database for motor data within a specified time range.
+        # It constructs a Flux query, sends it to the InfluxDB server, and processes the response.
         query = f"""
         from(bucket: "{self.bucket}")
         |> range(start: {start_time}, stop: {end_time})
@@ -36,6 +38,8 @@ class InfluxDBClientHandler:
             raise BadQueryException() from e
 
     def query_controller_data(self, start_time: str, end_time: str) -> List[ControllerData]:
+        # This function queries the InfluxDB database for controller data within a specified time range.
+        # It constructs a Flux query, sends it to the InfluxDB server, and processes the response.
         query = f"""
         from(bucket: "{self.bucket}")
         |> range(start: {start_time}, stop: {end_time})
@@ -56,6 +60,8 @@ class InfluxDBClientHandler:
             raise BadQueryException() from e
 
     def query_battery_data(self, start_time: str, end_time: str) -> List[BatteryData]:
+        # This function queries the InfluxDB database for battery data within a specified time range.
+        # It constructs a Flux query, sends it to the InfluxDB server, and processes the response.
         query = f"""
         from(bucket: "{self.bucket}")
         |> range(start: {start_time}, stop: {end_time})

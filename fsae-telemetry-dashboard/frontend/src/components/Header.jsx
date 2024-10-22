@@ -12,13 +12,12 @@ import {
 } from "@chakra-ui/react";
 
 function Header() {
-  const margin = "1.5rem"; // Reusable margin value
+  const margin = "1.0rem";
 
   return (
-    <Flex minHeight="100vh"> {/* Set Flex to take full viewport height */}      
-      {/* Sidebar */}
+    <Flex minHeight="100vh"> 
       <Box 
-        width={{ base: '10%', md: '2.5%' }} 
+        width="10%" as="div" // Explicitly set the type
         bg="white" 
         border="1px solid grey"
         height="100%" 
@@ -42,21 +41,11 @@ function Header() {
           padding="0.2rem"
         >
           <Breadcrumb separator="/" fontSize="1.4rem">
-            <BreadcrumbItem>
-              <BreadcrumbLink href='Summary' aria-label="Navigate to Summary">Summary</BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbItem>
-              <BreadcrumbLink href='Power' aria-label="Navigate to Power">Power</BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbItem>
-              <BreadcrumbLink href='Motor' aria-label="Navigate to Motor">Motor</BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbItem>
-              <BreadcrumbLink href='Microcontroller' aria-label="Navigate to Microcontroller">Microcontroller</BreadcrumbLink>
-            </BreadcrumbItem>
+            {['Summary', 'Power', 'Motor', 'Microcontroller'].map((item) => (
+              <BreadcrumbItem key={item}>
+                <BreadcrumbLink href={item} aria-label={`Navigate to ${item}`}>{item}</BreadcrumbLink>
+              </BreadcrumbItem>
+            ))}
           </Breadcrumb>
         </Flex>
 

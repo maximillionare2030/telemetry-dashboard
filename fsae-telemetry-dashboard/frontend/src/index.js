@@ -1,16 +1,20 @@
-import React from "react";
-import { render } from 'react-dom';
-import { ChakraProvider } from "@chakra-ui/react";
+// fsae-telemetry-dashboard/frontend/src/AppRouter.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Header from './components/Header.jsx'; // Adjust the path if necessary
+import Home from './pages/Home.jsx'; // Create this component
+import NotFound from './pages/NotFound.jsx'; 
 
-import Header from "./components/Header";
-
-function App() {
+const AppRouter = () => {
   return (
-    <ChakraProvider>
+    <Router>
       <Header />
-    </ChakraProvider>
-  )
-}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
+};
 
-const rootElement = document.getElementById("root")
-render(<App />, rootElement)
+export default AppRouter;
