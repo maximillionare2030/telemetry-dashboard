@@ -10,6 +10,7 @@ import {
   Grid,
   GridItem
 } from "@chakra-ui/react";
+import Databox from "./Databox";
 
 function Header() {
   const margin = "1.0rem";
@@ -55,7 +56,7 @@ function Header() {
 
             <Center margin={margin} border="1px solid grey" padding="0.5rem" width="auto">
               <Grid templateColumns="repeat(4, 1fr)" gap={5} width="100%">
-                <GridItem h="200px" bg="white" border="1px solid grey" />
+                <Databox title="Voltage" value="12.0" unit="V" />
                 <GridItem h="200px" bg="white" border="1px solid grey" />
                 <GridItem h="200px" bg="white" border="1px solid grey" />
                 <GridItem h="200px" bg="white" border="1px solid grey" />
