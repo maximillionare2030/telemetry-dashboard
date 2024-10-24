@@ -1,12 +1,14 @@
 // dashboard home page
 import React from "react";
 import Header from "../components/Header";
+import { useParams } from 'react-router-dom';
 
 const Home = () => {
+
+  const { component } = useParams();
   return (
     <>
-      <Header />
-      <h1>hello</h1>
+      <Header component={component} />
     </>
   );
 };
