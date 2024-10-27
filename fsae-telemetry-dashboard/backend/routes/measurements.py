@@ -14,8 +14,9 @@ MEASUREMENT_BUCKETS = {
     'battery_data': 'battery_bucket',
 }
 
-@measurements_bp.route('/data/<measurement>', methods = ['GET']) # route to retrieve data from the database
+@measurements_bp.route('/data/<measurement>', methods=['GET'])
 def get_measurement_data(measurement):
+    # Your logic to fetch data based on the measurement type
     start_time = request.args.get('start_time', '-1h') # set default time to last hour
     end_time = request.args.get('end_time', 'now()')     # set default end time to now
 
