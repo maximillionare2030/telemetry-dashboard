@@ -1,11 +1,12 @@
 # api request to retrieve measurements data 
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter
 from client.influx import InfluxDBClientHandler
 from dotenv import load_dotenv
 import os
 
 
-measurements_bp = Blueprint('measurements', __name__)  # create a blueprint object to store the route to measurements
+measurements_bp = APIRouter()
+
 load_dotenv()
 influx_client = InfluxDBClientHandler(url="http://localhost:8086", token=os.getenv("INFLUX_API_KEY"), org=os.getenv("INFLUX_ORG_NAME"))
 
@@ -14,8 +15,8 @@ MEASUREMENT_BUCKETS = {
     'battery_data': 'battery_bucket',
 }
 
-@measurements_bp.route('/data/<measurement>', methods=['GET'])
-def get_measurement_data(measurement):
+@measurements_bp.get('/data/{measurement}')
+async def get_measurement_data(measurement: str):
     # Your logic to fetch data based on the measurement type
     start_time = request.args.get('start_time', '-1h') # set default time to last hour
     end_time = request.args.get('end_time', 'now()')     # set default end time to now
