@@ -2,6 +2,11 @@ from influxdb_client import InfluxDBClient, Point
 from typing import List
 from models import MotorData, ControllerData, BatteryData
 from .exceptions import InfluxNotAvailableException, BucketNotFoundException, BadQueryException
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # InfluxDB client setup
 class InfluxDBClientHandler:
@@ -13,175 +18,17 @@ class InfluxDBClientHandler:
         self.client = InfluxDBClient(url=self.url, token=self.token, org=self.org)
         self.query_api = self.client.query_api()
         self.write_api = self.client.write_api()  # Create a write API instance
-        self.write_fake_data()  # Call to write fake data
 
-    def write_fake_data(self):
-        """
-        Write fake data to InfluxDB.
-        This is fake data for testing purposes only.
-        """
-        fake_data = [
-           # Motor Data
-        {
-            "measurement": "motor_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T00:00:00Z",
-                "end_time": "2023-10-01T01:00:00Z",
-                "value": 1500,  # Example motor speed
-                "type": "motor"
-            }
-        },
-        {
-            "measurement": "motor_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T01:00:00Z",
-                "end_time": "2023-10-01T02:00:00Z",
-                "value": 1600,  # Example motor speed
-                "type": "motor"
-            }
-        },
-        {
-            "measurement": "motor_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T02:00:00Z",
-                "end_time": "2023-10-01T03:00:00Z",
-                "value": 1550,  # Example motor speed
-                "type": "motor"
-            }
-        },
-        {
-            "measurement": "motor_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T03:00:00Z",
-                "end_time": "2023-10-01T04:00:00Z",
-                "value": 1580,  # Example motor speed
-                "type": "motor"
-            }
-        },
-        {
-            "measurement": "motor_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T04:00:00Z",
-                "end_time": "2023-10-01T05:00:00Z",
-                "value": 1620,  # Example motor speed
-                "type": "motor"
-            }
-        },
-
-        # Controller Data
-        {
-            "measurement": "battery_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T00:00:00Z",
-                "end_time": "2023-10-01T01:00:00Z",
-                "value": 80, 
-                "type": "battery"
-            }
-        },
-        {
-            "measurement": "battery_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T01:00:00Z",
-                "end_time": "2023-10-01T02:00:00Z",
-                "value": 82,  
-                "type": "battery"
-            }
-        },
-        {
-            "measurement": "battery_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T02:00:00Z",
-                "end_time": "2023-10-01T03:00:00Z",
-                "value": 79,  # Example controller temperature
-                "type": "battery"
-            }
-        },
-        {
-            "measurement": "battery_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T03:00:00Z",
-                "end_time": "2023-10-01T04:00:00Z",
-                "value": 81,  # Example controller temperature
-                "type": "battery"
-            }
-        },
-        {
-            "measurement": "battery_data",
-            "tags": {
-                "location": "office"
-            },
-            "fields": {
-                "start_time": "2023-10-01T04:00:00Z",
-                "end_time": "2023-10-01T05:00:00Z",
-                "value": 83,  # Example controller temperature
-                "type": "battery"
-            }
-        }
-        ]
-        
-        for data in fake_data:
-            # create a new data point for each piece of data (syntax for orionbms)
-            point = (
-                Point(data["measurement"])
-                .tag("location", data["tags"]["location"]) # tag data with a location (dataName, dataValue)
-                .field("motorSPD", data["fields"].get("motorSPD", None)) # fields represent data to store (dataName, dataValue)
-                .field("motorTMP", data["fields"].get("motorTMP", None))
-                .field("batteryVOLT", data["fields"].get("batteryVOLT", None))
-                .field("batteryTEMP", data["fields"].get("batteryTEMP", None))
-                .field("batteryCURR", data["fields"].get("batteryCURR", None))
-            )
-            self.write_api.write(bucket=self.bucket, record=point)  # Write to the db
-        print("Fake data written to InfluxDB.")
-
-    def query_motor_data(self, start_time: str, end_time: str) -> List[MotorData]:
-        query = f"""
-        from(bucket: "{self.bucket}")
-        |> range(start: {start_time}, stop: {end_time})
-        |> filter(fn: (r) => r["_measurement"] == "motor_data")
-        """
+    def write_data(self, bucket: str, data: List[Point]): # each point is a row of data to add to the database
         try:
-            result = self.query_api.query(query)
-            motor_data_list = []
-            for table in result:
-                for record in table.records:
-                    motor_data_list.append(
-                        MotorData(
-                            motorSPD=record.get_value() if record.get_field() == "motorSPD" else None,
-                            motorTMP=record.get_value() if record.get_field() == "motorTMP" else None
-                        )
-                    )
-            return motor_data_list
+            self.write_api.write(bucket=bucket, record=data) # use the write api to write data to the database in the bucket
+            logger.info("Data written successfully to InfluxDB.")
         except Exception as e:
+            logger.error(f"Failed to write data: {str(e)}")
             raise BadQueryException() from e
 
     def query_controller_data(self, start_time: str, end_time: str) -> List[ControllerData]:
+        logger.info(f"Querying controller data from {start_time} to {end_time}")
         query = f"""
         from(bucket: "{self.bucket}")
         |> range(start: {start_time}, stop: {end_time})
@@ -199,6 +46,7 @@ class InfluxDBClientHandler:
                     )
             return controller_data_list
         except Exception as e:
+            logger.error(f"Error querying controller data: {str(e)}")
             raise BadQueryException() from e
 
     def query_battery_data(self, start_time: str, end_time: str) -> List[BatteryData]:
@@ -243,3 +91,26 @@ class InfluxDBClientHandler:
     def close(self):
         """Close the InfluxDB client connection."""
         self.client.close()
+
+    def query_motor_data(self, start_time: str, end_time: str) -> List[MotorData]:
+        logger.info(f"Querying motor data from {start_time} to {end_time}")
+        query = f"""
+        from(bucket: "{self.bucket}")
+        |> range(start: {start_time}, stop: {end_time})
+        |> filter(fn: (r) => r["_measurement"] == "motor_data")
+        """
+        try:
+            result = self.query_api.query(query)
+            motor_data_list = []
+            for table in result:
+                for record in table.records:
+                    motor_data_list.append(
+                        MotorData(
+                            motorSPD=record.get_value() if record.get_field() == "motorSPD" else None,
+                            motorTMP=record.get_value() if record.get_field() == "motorTMP" else None
+                        )
+                    )
+            return motor_data_list
+        except Exception as e:
+            logger.error(f"Error querying motor data: {str(e)}")
+            raise BadQueryException() from e

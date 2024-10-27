@@ -1,8 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.measurements import measurements_bp 
-
+from routes.measurements import measurements_bp  
+from client.influx import InfluxDBClientHandler 
 
 app = FastAPI()
 
@@ -21,11 +21,16 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-app.include_router(measurements_bp) 
+# app.include_router(measurements_bp) 
 
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the API"}
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if hasattr(app.state, 'influx_client'):
+        await app.state.influx_client.close()  # Close the InfluxDB client if it exists
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)

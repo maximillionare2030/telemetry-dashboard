@@ -1,10 +1,10 @@
 # api request to retrieve measurements data 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from client.influx import InfluxDBClientHandler
 from dotenv import load_dotenv
 import os
 
-
+# creates blueprint for a new router in the application
 measurements_bp = APIRouter()
 
 load_dotenv()
@@ -16,23 +16,20 @@ MEASUREMENT_BUCKETS = {
 }
 
 @measurements_bp.get('/data/{measurement}')
-async def get_measurement_data(measurement: str):
-    # Your logic to fetch data based on the measurement type
-    start_time = request.args.get('start_time', '-1h') # set default time to last hour
-    end_time = request.args.get('end_time', 'now()')     # set default end time to now
-
+# pull mesurement data from the buckets in influxdb
+async def get_measurement_data(measurement: str, start_time: str = '-1h', end_time: str = 'now()'):
     bucket = MEASUREMENT_BUCKETS.get(measurement)
     if not bucket:
-        return jsonify({"error": "Invalid measurement type"}), 400
+        raise HTTPException(status_code=400, detail="Invalid measurement type")
     
     try:
         if measurement == 'motor_data':
-            data = influx_client.query_motor_data(start_time, end_time, bucket)
+            data = await influx_client.query_motor_data(start_time, end_time, bucket)
         elif measurement == 'battery_data':
-            data = influx_client.query_controller_data(start_time, end_time, bucket)
+            data = await influx_client.query_controller_data(start_time, end_time, bucket)
         else:
-            return jsonify({"error" : "Invalid Measurement Type"}), 400
+            raise HTTPException(status_code=400, detail="Invalid Measurement Type")
         
-        return jsonify(data)
+        return data  # Return the data directly
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
