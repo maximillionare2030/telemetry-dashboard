@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   Flex, 
   Breadcrumb,
@@ -8,20 +8,33 @@ import {
   Text,
   Grid,
   Box
+  
 } from "@chakra-ui/react";
+
+
+import { Button, Checkbox, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 
 import Databox from "./Databox";
 import LineChart from "./Chart";
 
 
 
-function Header({ component }) {
+function Info({ component }) {
 
-  // Helper function to capitalize the first letter
-
+  component = component.charAt(0).toUpperCase() + component.slice(1)
 
   const margin = "1.0rem";
+  const [selectedItems, setSelectedItems] = useState([]);
 
+  const measurementOptions = ["Voltage", "Power", "Option 3", "Option 4"];
+
+  const handleToggle = (option) => {
+    setSelectedItems((prevSelected) =>
+      prevSelected.includes(option)
+        ? prevSelected.filter((item) => item !== option)
+        : [...prevSelected, option]
+    );
+  };
   return (
     <Flex
       direction="column" 
@@ -42,7 +55,7 @@ function Header({ component }) {
         
       >
         <Breadcrumb separator="/" fontSize="1.25rem">
-          {['Summary', 'Power', 'Motor', 'Microcontroller'].map((item) => (
+          {['Power', 'Motor', 'Microcontroller'].map((item) => (
             <BreadcrumbItem key={item}>
               <BreadcrumbLink href={`/${item.toLowerCase()}`} aria-label={`Navigate to ${item}`}>
                 {item}
@@ -81,18 +94,44 @@ function Header({ component }) {
         </Center>
 
         {/* Graphing */}
+
+   
         <Center
           border="1px solid grey"
           padding="0.5rem"
           width="auto"
           flex="1"
           margin={margin}
+          maxHeight="100.0rem"
         >
-          <LineChart />
+          <LineChart component={component} selectedItems={selectedItems} /> {/* component and measurements pased to LineChart */}
         </Center>
+
+        <Menu closeOnSelect={false}>
+          <MenuButton 
+          width="10%"
+          ml="right"
+          margin={margin}
+          as={Button}>
+            Select Measurements
+          </MenuButton>
+          <MenuList>
+            {measurementOptions.map((option) => (
+              <MenuItem key={option} closeOnSelect={false}>
+                <Checkbox
+                  isChecked={selectedItems.includes(option)}
+                  onChange={() => handleToggle(option)}
+                >
+                  {option}
+                </Checkbox>
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
+
       </Flex>
     </Flex>
   );
 }
 
-export default Header;
+export default Info;
