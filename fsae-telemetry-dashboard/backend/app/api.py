@@ -23,3 +23,7 @@ async def read_drood() -> dict:
 @app.get("/Influx")
 async def read_drood() -> dict:
     return {"message": "Influx"}
+
+@app.get("/")
+async def read_root():
+    return {"Hello": "World"}
