@@ -3,6 +3,7 @@
 fastapi
 uvicorn
 influxdb-client
+pandas
 
 **npm install**
 
