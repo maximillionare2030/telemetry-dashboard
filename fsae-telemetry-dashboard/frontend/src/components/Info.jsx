@@ -88,7 +88,7 @@ function Info({ component }) {
 
           <Grid templateColumns="repeat(4, 1fr)" gap={5} width="100%">
             <Box height="100%">
-              <Databox title="Voltage" value="12.0" unit="V" />
+            <Databox measurement="motor_data"/>
             </Box>
           </Grid>
         </Center>

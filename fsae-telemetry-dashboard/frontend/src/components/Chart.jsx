@@ -85,7 +85,7 @@ function LineChart({ component, selectedItems }) {
           pinch: {
             enabled: true,
           },
-          mode: 'xy',
+          mode: 'x',
         },
       },
     },
