@@ -1,32 +1,44 @@
-import csv
-import requests
+import pandas as pd
+from influxdb import InfluxDBClient
 
-# InfluxDB settings
-influxdb_url = 'http://localhost:8086/write?db=your_database_name'  # Change to your database name
+# Step 1: Create a connection to the InfluxDB server
+client = InfluxDBClient(host='localhost', port=8086)
+database_name = 'dummy_data'  # Replace with your database name
+client.switch_database(database_name)
 
-# CSV file path
-csv_file_path = 'data.csv'  # Change to your CSV file path
+# Step 2: Read the CSV file into a DataFrame  ** CHANGE TO DIRECT PATH ON YOUR DEVICE **
+df = pd.read_csv('C:\\Users\\User\\Desktop\\School and Life\\EV\\HCI\\fsae-telemetry-dashboard\\backend\\client\\vehicle_data\\Kilozott_Dummy_Data.csv')
 
-# Function to convert CSV to InfluxDB line protocol and insert into InfluxDB
-def import_csv_to_influxdb(csv_file):
-    with open(csv_file, 'r') as file:
-        reader = csv.DictReader(file)
-        data = []
-        
-        for row in reader:
-            # Convert each row to InfluxDB line protocol format
-            # Assuming 'temperature' and 'humidity' are fields and 'time' is the timestamp
-            line = f"weather,location=room temperature={row['temperature']},humidity={row['humidity']} {row['time']}"
-            data.append(line)
+# Step 3: Prepare the JSON body for InfluxDB
+json_body = []
 
-        # Join all lines and send to InfluxDB
-        payload = '\n'.join(data)
-        response = requests.post(influxdb_url, data=payload)
-        
-        if response.status_code == 204:
-            print("Data imported successfully.")
-        else:
-            print(f"Failed to import data: {response.status_code} - {response.text}")
+# Get the column names for tags and fields
+tags = []  # List for any tags if needed
+fields = df.columns[1:]  # All columns except the timestamp
+measurement_name = "motor_data"  # Name of the measurement
 
-# Call the function
-import_csv_to_influxdb(csv_file_path)
+for index, row in df.iterrows():
+    entry = {
+        "measurement": f"{measurement_name}",  # Replace with your measurement name
+        "time": row['timeStamp'],  # Use the timestamp column
+        "tags": {tag: row[tag] for tag in tags},  # If you have tags, populate them here
+        "fields": {field: row[field] for field in fields}  # All other columns are fields
+    }
+    json_body.append(entry)
+
+
+
+# Step 4: Write data to InfluxDB
+print(client.write_points(json_body))
+
+print("Data written successfully to InfluxDB.")
+
+
+# Step 5: Query data from the database
+query = f'SELECT * FROM {measurement_name}'
+result = client.query(query)
+
+# Step 6: Process the results
+points = list(result.get_points())
+for point in points:
+    print(point)
