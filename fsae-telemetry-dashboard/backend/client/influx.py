@@ -114,3 +114,10 @@ class InfluxDBClientHandler:
         except Exception as e:
             logger.error(f"Error querying motor data: {str(e)}")
             raise BadQueryException() from e
+
+
+""""
+Funciton for converting CSV into INFLUX db --
+"""
+
+
