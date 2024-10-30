@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.measurements import measurements_bp  
+from routes.influx_routes import influx_bp 
 from client.influx import InfluxDBClientHandler 
 
 app = FastAPI()
