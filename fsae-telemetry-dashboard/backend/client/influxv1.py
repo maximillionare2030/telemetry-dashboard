@@ -76,15 +76,9 @@ class InfluxDBHandler(object):
             print(f"Error exporting data from measurement '{measurement_name}': {e}")
 
 # Instantiate the handler
-handler = InfluxDBHandler(
-    host="localhost",
-    port=8086,
-    username="root",
-    password="root",
-    database="dummy_data"
-)
+
 
 # Call the csv_to_influx method to test
 #handler.csv_to_influx("C:\\Users\\User\\Desktop\\School and Life\\EV\\HCI\\fsae-telemetry-dashboard\\backend\\client\\vehicle_data\\Kilozott_Dummy_Data.csv")
 
-handler.influx_to_csv("Kilozott_Dummy_Data", "Kilozott_Dummy_Data_Influx_to_CSV.csv")
+#handler.influx_to_csv("Kilozott_Dummy_Data", "Kilozott_Dummy_Data_Influx_to_CSV.csv")
