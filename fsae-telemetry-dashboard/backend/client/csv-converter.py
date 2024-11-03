@@ -26,8 +26,6 @@ for index, row in df.iterrows():
     }
     json_body.append(entry)
 
-
-
 # Step 4: Write data to InfluxDB
 print(client.write_points(json_body))
 

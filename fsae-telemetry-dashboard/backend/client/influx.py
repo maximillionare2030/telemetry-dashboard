@@ -1,12 +1,25 @@
 from influxdb_client import InfluxDBClient, Point
 from typing import List
-from models import MotorData, ControllerData, BatteryData
-from .exceptions import InfluxNotAvailableException, BucketNotFoundException, BadQueryException
+from exceptions import BadQueryException
 import logging
+import pandas as pd
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from a .env file located in the backend directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Load environment variables
+INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
+INFLUX_ORG_NAME = os.getenv("INFLUX_ORG_NAME")
+
+# Print the token and organization for debugging
+print(f"Using InfluxDB Token: {INFLUXDB_TOKEN}")
+print(f"Using InfluxDB Organization: {INFLUX_ORG_NAME}")
 
 # InfluxDB client setup
 class InfluxDBClientHandler:
@@ -19,57 +32,32 @@ class InfluxDBClientHandler:
         self.query_api = self.client.query_api()
         self.write_api = self.client.write_api()  # Create a write API instance
 
-    def write_data(self, bucket: str, data: List[Point]): # each point is a row of data to add to the database
+    def write_data(self, bucket: str, data: List[Point]):
         try:
-            self.write_api.write(bucket=bucket, record=data) # use the write api to write data to the database in the bucket
+            self.write_api.write(bucket=bucket, record=data)
             logger.info("Data written successfully to InfluxDB.")
         except Exception as e:
             logger.error(f"Failed to write data: {str(e)}")
             raise BadQueryException() from e
 
-    def query_controller_data(self, start_time: str, end_time: str) -> List[ControllerData]:
-        logger.info(f"Querying controller data from {start_time} to {end_time}")
+    def query_data(self, measurement: str, fields: List[str], timestamp: str):
+        logger.info(f"Querying data from {measurement} on {timestamp}")
+        field_filters = ' or '.join([f'r["_field"] =="{field}"' for field in fields])
         query = f"""
         from(bucket: "{self.bucket}")
-        |> range(start: {start_time}, stop: {end_time})
-        |> filter(fn: (r) => r["_measurement"] == "controller_data")
+        |> range(start: {timestamp}, stop: {timestamp})
+        |> filter(fn: (r) => r["_measurement"] == "{measurement}")
+        |> filter(fn: (r) => {field_filters})
         """
         try:
             result = self.query_api.query(query)
-            controller_data_list = []
+            data_list = []
             for table in result:
                 for record in table.records:
-                    controller_data_list.append(
-                        ControllerData(
-                            controllerTMP=record.get_value() if record.get_field() == "controllerTMP" else None
-                        )
-                    )
-            return controller_data_list
+                    data_list.append(record.values)
+            return data_list
         except Exception as e:
-            logger.error(f"Error querying controller data: {str(e)}")
-            raise BadQueryException() from e
-
-    def query_battery_data(self, start_time: str, end_time: str) -> List[BatteryData]:
-        query = f"""
-        from(bucket: "{self.bucket}")
-        |> range(start: {start_time}, stop: {end_time})
-        |> filter(fn: (r) => r["_measurement"] == "battery_data")
-        |> filter(fn: (r) => r["_field"] == "batteryVOLT" or r["_field"] == "batteryTEMP" or r["_field"] == "batteryCURR")
-        """
-        try:
-            result = self.query_api.query(query)
-            battery_data_list = []
-            for table in result:
-                for record in table.records:
-                    battery_data_list.append(
-                        BatteryData(
-                            batteryVOLT=record.get_value() if record.get_field() == "batteryVOLT" else None,
-                            batteryTEMP=record.get_value() if record.get_field() == "batteryTEMP" else None,
-                            batteryCURR=record.get_value() if record.get_field() == "batteryCURR" else None
-                        )
-                    )
-            return battery_data_list
-        except Exception as e:
+            logger.error(f"Error querying data: {str(e)}")
             raise BadQueryException() from e
 
     def fetch_recent_data(self):
@@ -92,32 +80,20 @@ class InfluxDBClientHandler:
         """Close the InfluxDB client connection."""
         self.client.close()
 
-    def query_motor_data(self, start_time: str, end_time: str) -> List[MotorData]:
-        logger.info(f"Querying motor data from {start_time} to {end_time}")
-        query = f"""
-        from(bucket: "{self.bucket}")
-        |> range(start: {start_time}, stop: {end_time})
-        |> filter(fn: (r) => r["_measurement"] == "motor_data")
-        """
-        try:
-            result = self.query_api.query(query)
-            motor_data_list = []
-            for table in result:
-                for record in table.records:
-                    motor_data_list.append(
-                        MotorData(
-                            motorSPD=record.get_value() if record.get_field() == "motorSPD" else None,
-                            motorTMP=record.get_value() if record.get_field() == "motorTMP" else None
-                        )
-                    )
-            return motor_data_list
-        except Exception as e:
-            logger.error(f"Error querying motor data: {str(e)}")
-            raise BadQueryException() from e
+ # test case
+def test_query_data():
+    client_handler = InfluxDBClientHandler(url="http://localhost:8086", token=INFLUXDB_TOKEN, org=INFLUX_ORG_NAME)
 
+    measurement = "motor_data"
+    fields = ["motorSPD", "motorTEMP", "packVOLT", "packTEMP", "packCURR", "packCCL"]
+    timestamp = "2024-09-01T00:00:00Z"
 
-""""
-Funciton for converting CSV into INFLUX db --
-"""
+    try:
+        data = client_handler.query_data(measurement, fields, timestamp)
+        print(data)
+    except BadQueryException:
+        print("Failed to query data. Please check your credentials and query parameters.")
 
-
+# Call the test function
+if __name__ == "__main__":
+    test_query_data()
