@@ -16,7 +16,7 @@ class InfluxDBHandler:
     def get_databases(self):
         """Returns a list of available databases in InfluxDB."""
         try:
-            return [db['name'] for db in self.client.get_list_database()]
+            return [db['name'] for db in self.client.get_list_database() if db['name'] != '_internal']
         except Exception as e:
             print(f"Error retrieving databases: {e}")
             return []
@@ -78,8 +78,6 @@ class InfluxDBHandler:
                 return []
 
             print(f"Retrieved {len(points)} points from measurement '{measurement_name}':")
-            for point in points:
-                print(point)
 
             return points  # Optionally return the points for further processing
 
@@ -148,6 +146,8 @@ class InfluxDBHandler:
 
         except Exception as e:
             print(f"Error exporting data from measurement '{measurement_name}': {e}")
+
+
 
 
 
