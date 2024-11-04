@@ -9,7 +9,7 @@ const Home = () => {
   
   return (
     <>
-      <Info component={component} />
+      <Info component = {component}/>
     </>
   );
 };

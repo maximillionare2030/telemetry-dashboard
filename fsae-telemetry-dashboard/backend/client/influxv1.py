@@ -20,6 +20,14 @@ class InfluxDBHandler:
         except Exception as e:
             print(f"Error retrieving databases: {e}")
             return []
+        
+    def drop_database(self, database):
+        """Drops a specific database from InfluxDB."""
+        try:
+            self.client.drop_database(database)
+            print(f"Database '{database}' dropped successfully.")
+        except Exception as e:
+            print(f"Error dropping database '{database}': {e}")
 
     def get_measurements(self, database):
         """Returns a list of measurements in the specified database."""
@@ -27,6 +35,7 @@ class InfluxDBHandler:
             # Switch to the specified database
             self.client.switch_database(database)
             measurements = self.client.query('SHOW MEASUREMENTS')
+            print("Successfully retrieved measurements")
             return [m['name'] for m in measurements.get_points()]
         except Exception as e:
             print(f"Error retrieving measurements from '{database}': {e}")
@@ -37,15 +46,23 @@ class InfluxDBHandler:
         try:
             # Switch to the specified database
             self.client.switch_database(database)
+            
             # Query to get the fields of the measurement
             query = f'SHOW FIELD KEYS FROM "{measurement_name}"'
             result = self.client.query(query)
+            
+            # Log successful retrieval of fields
+            print(f"Successfully retrieved fields from '{measurement_name}' in database '{database}'")
+            
+            # Return a list of field keys
             return [field['fieldKey'] for field in result.get_points()]
+        
         except Exception as e:
             print(f"Error retrieving fields from measurement '{measurement_name}' in database '{database}': {e}")
             return []
 
-    def get_points(self, measurement_name, database):
+
+    def get_points(self, database, measurement_name):
         """Retrieves all points from a specified measurement in the given database."""
         try:
             # Ensure the client is switched to the target database
@@ -72,10 +89,13 @@ class InfluxDBHandler:
 
     def ensure_database(self, database):
         """Ensures that the specified database exists; creates it if it doesn't."""
+        
         databases = self.get_databases()
+        
         if database not in databases:
             print(f"Database '{database}' does not exist. Creating it.")
             self.client.create_database(database)
+        
         self.client.switch_database(database)
         print(f"Switched to database: {database}")
 
@@ -95,7 +115,7 @@ class InfluxDBHandler:
             for _, row in df.iterrows():
                 json_body.append({
                     "measurement": measurement_name,
-                    "time": row["timestamp"],  # Timestamp should be in RFC3339 format
+                    "time": row.iloc[0],  # Timestamp should be in RFC3339 format
                     "fields": {field: row[field] for field in fields}
                 })
 
@@ -129,72 +149,28 @@ class InfluxDBHandler:
         except Exception as e:
             print(f"Error exporting data from measurement '{measurement_name}': {e}")
 
-# Instantiate the handler
-handler = InfluxDBHandler(
-    host="localhost",
-    port=8086,
-    username="root",
-    password="root",
-)
 
-# Test get_databases
-print("Testing get_databases()")
-databases = handler.get_databases()
-print("Databases:", databases)
 
-# Test get_measurements
-print("\nTesting get_measurements()")
-if databases:
-    first_database = databases[0]  # Get the first database for testing
-    measurements = handler.get_measurements(first_database)
-    print(f"Measurements in '{first_database}':", measurements)
-else:
-    print("No databases available for testing measurements.")
 
-# Test get_fields
-print("\nTesting get_fields()")
-if measurements:
-    first_measurement = measurements[0]  # Get the first measurement for testing
-    fields = handler.get_fields(first_database, first_measurement)
-    print(f"Fields in measurement '{first_measurement}' of database '{first_database}':", fields)
-else:
-    print("No measurements available for testing fields.")
 
-# Test get_points
-print("\nTesting get_points()")
-if measurements:
-    points = handler.get_points(first_measurement, first_database)
-    print(f"Points in measurement '{first_measurement}':", points)
-
-# Test ensure_database
-print("\nTesting ensure_database()")
-test_database_name = "TestDatabase"
-handler.ensure_database(test_database_name)
-print(f"Ensured existence of database '{test_database_name}'.")
-
-# Test csv_to_influx (Make sure to have a valid CSV file for testing)
-# Uncomment and set your own CSV file path
-# print("\nTesting csv_to_influx()")
-# test_csv_file = "path/to/your/testfile.csv"
-# handler.csv_to_influx(test_csv_file, test_database_name)
-
-# Test influx_to_csv (Make sure to have a measurement with data)
-"""
-print("\nTesting influx_to_csv()")
-output_csv_file = "output_data.csv"
-handler.influx_to_csv(first_measurement, output_csv_file, first_database)
-"""
-
-print("All tests executed.")
 
 
 """
 InfluxDB Visualization:
+
+Databases will be used as a dataset for each race (ex: ATOM, FSAE Final)
+Measurements are the different sets of data that will be used from the vehicle (First Lap, Second Lap, Third Lap)
+
+Each MEASUREMENT has
+    Points: Set of data that we want to measure from
+    Fields: Key-value pairs that hold the actual data you want to track (ex. temperature = 23.5, battery voltage = 10.0)
+    Tags: Key-value pairs that provide additional context about the data (ex. car_id = 123, race_id = 456)
+
 +--------------------------+
 |       InfluxDB           |
 |                          |
 |   +-------------------+  |
-|   |    Database       |  |
+|   |    Database      |  |
 |   |  (e.g., mydb)    |  |
 |   |                   |  |
 |   | +---------------+ |  |
