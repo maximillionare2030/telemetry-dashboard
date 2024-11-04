@@ -11,18 +11,23 @@ function LineChart({ component, selectedItems }) {
   const chartRef = useRef(null);
 
   useEffect(() => {
-    // Fetch data when the component prop changes
+    // Fetch InfluxDB data when the component prop changes
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Use dummy data for testing
-        const result = [
-          { x: 1, y: 10 },
-          { x: 2, y: 15 },
-          { x: 3, y: 20 },
-          { x: 4, y: 25 },
-        ];
-        setData(result);
+        // Fetch data from FastAPI
+        const response = await fetch(`http://localhost:8000/api/influx/get/info`);
+        const result = await response.json();
+
+        // Extract data for the chart, assuming your API returns the structure you need
+        const chartData = result.info.databases.map((db) => {
+          return {
+            x: db.someFieldX, // Replace with the actual field for x-axis
+            y: db.someFieldY, // Replace with the actual field for y-axis
+          };
+        });
+
+        setData(chartData);
       } catch (error) {
         console.error("Error fetching data: ", error);
       } finally {
@@ -96,7 +101,7 @@ function LineChart({ component, selectedItems }) {
   }
 
   return (
-    <div style={{ width: '100%', height: '100%'}}>
+    <div style={{ width: '100%', height: '100%' }}>
       <Line ref={chartRef} data={chartData} options={options} />
       <button onClick={() => chartRef.current.resetZoom()} ml="auto">Reset Zoom</button>
     </div>
@@ -104,10 +109,3 @@ function LineChart({ component, selectedItems }) {
 }
 
 export default LineChart;
-
-
-/*
-const response = await fetch(`http://localhost:5000/api/data/${component}`);
-const result = await response.json();
-
-*/
