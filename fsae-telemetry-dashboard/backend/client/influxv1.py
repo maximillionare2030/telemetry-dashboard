@@ -54,7 +54,9 @@ class InfluxDBHandler:
             # Use the write_api to write data
             write_api = self.client.write_api()
             write_api.write(bucket=bucket, record=json_body)
-            print("Data written successfully to InfluxDB.")
+            print("Data written successfully to InfluxDB." + {bucket})
+            # print the data in the bucket
+            print(self.client.query_api().query(f'from(bucket: "{bucket}")'))
         except Exception as e:
             print(f"Failed to write data: {e}")
 
