@@ -151,10 +151,6 @@ class InfluxDBHandler:
 
 
 
-
-
-
-
 """
 InfluxDB Visualization:
 

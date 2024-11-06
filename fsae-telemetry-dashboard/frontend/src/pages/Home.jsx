@@ -7,8 +7,6 @@ import {
   BreadcrumbLink,
   Center,
   Text,
-  Grid,
-  Box
 } from "@chakra-ui/react";
 
 import { useParams } from 'react-router-dom';
@@ -57,6 +55,8 @@ function Home() {
       </Flex>
 
       {/* Main Content Area */}
+
+
       <Flex
         direction="column" 
         flex="1" 
@@ -68,7 +68,10 @@ function Home() {
           {component} Management
         </Text>
 
-        {/* Databox section */}
+          {/* Config Component */}
+        <Config onChange={handleConfigSelectionChange} /> {/* Pass handler to Config */}
+
+        {/* Databox section (WAS NOT ABLE TO IMPLEMENT)
         <Center
           border="1px solid grey"
           padding="0.5rem"
@@ -83,6 +86,8 @@ function Home() {
           </Grid>
         </Center>
 
+        */}
+
         {/* Graphing */}
         <Center
           border="1px solid grey"
@@ -95,8 +100,6 @@ function Home() {
           <LineChart selectedConfig={selectedConfig} /> {/* Pass selectedConfig to LineChart */}
         </Center>
       </Flex>
-
-      <Config onChange={handleConfigSelectionChange} /> {/* Pass handler to Config */}
     </Flex>
   );
 }

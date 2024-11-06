@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from client.influxv1 import InfluxDBHandler
+import gzip
 
 # Create a router instance
 influx_bp = APIRouter()
@@ -63,21 +64,17 @@ async def query_info():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve InfluxDB info: {str(e)}")
 
-@influx_bp.post("/get/points", response_model=List[dict])
-async def get_points(request: PointsRequest):
-    """
-    Get specific points from InfluxDB for a given database and measurement.
+from typing import Dict
 
-    Returns: Points from the specified measurement.
-    """
+@influx_bp.post("/get/points")
+async def get_points(request: PointsRequest) -> Dict:
+    """Endpoint to return InfluxDB poitns at a given measurement and database"""
     try:
-        # Use the provided database and measurement name to retrieve points
         points = influx.get_points(request.database, request.measurement_name)
-
         if not points:
             raise HTTPException(status_code=404, detail="No points found for the specified measurement.")
-
-        return {"points": points}
-
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve points: {str(e)}")
+    
+    return {"points": points}  # Directly returning JSON data
