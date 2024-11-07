@@ -25,6 +25,90 @@ class InfluxDBHandler:
         except Exception as e:
             print(f"Error connecting to InfluxDB: {e}")
 
+    def get_databases(self):
+        """Returns a list of available databases in InfluxDB."""
+        try:
+            return [db['name'] for db in self.client.get_list_database() if db['name'] != '_internal']
+        except Exception as e:
+            print(f"Error retrieving databases: {e}")
+            return []
+        
+    def drop_database(self, database):
+        """Drops a specific database from InfluxDB."""
+        try:
+            self.client.drop_database(database)
+            print(f"Database '{database}' dropped successfully.")
+        except Exception as e:
+            print(f"Error dropping database '{database}': {e}")
+
+    def get_measurements(self, database):
+        """Returns a list of measurements in the specified database."""
+        try:
+            # Switch to the specified database
+            self.client.switch_database(database)
+            measurements = self.client.query('SHOW MEASUREMENTS')
+            print("Successfully retrieved measurements")
+            return [m['name'] for m in measurements.get_points()]
+        except Exception as e:
+            print(f"Error retrieving measurements from '{database}': {e}")
+            return []
+        
+    def get_fields(self, database, measurement_name):
+        """Returns a list of field keys in the specified measurement of the given database."""
+        try:
+            # Switch to the specified database
+            self.client.switch_database(database)
+            
+            # Query to get the fields of the measurement
+            query = f'SHOW FIELD KEYS FROM "{measurement_name}"'
+            result = self.client.query(query)
+            
+            # Log successful retrieval of fields
+            print(f"Successfully retrieved fields from '{measurement_name}' in database '{database}'")
+            
+            # Return a list of field keys
+            return [field['fieldKey'] for field in result.get_points()]
+        
+        except Exception as e:
+            print(f"Error retrieving fields from measurement '{measurement_name}' in database '{database}': {e}")
+            return []
+
+
+    def get_points(self, database, measurement_name):
+        """Retrieves all points from a specified measurement in the given database."""
+        try:
+            # Ensure the client is switched to the target database
+            self.client.switch_database(database)
+
+            # Query all points from the specified measurement
+            query = f'SELECT * FROM "{measurement_name}"'
+            result = self.client.query(query)
+            points = list(result.get_points())
+
+            if not points:
+                print(f"No points found in measurement '{measurement_name}'")
+                return []
+
+            print(f"Retrieved {len(points)} points from measurement '{measurement_name}':")
+
+            return points  # Optionally return the points for further processing
+
+        except Exception as e:
+            print(f"Error retrieving points from measurement '{measurement_name}': {e}")
+            return []
+
+    def ensure_database(self, database):
+        """Ensures that the specified database exists; creates it if it doesn't."""
+        
+        databases = self.get_databases()
+        
+        if database not in databases:
+            print(f"Database '{database}' does not exist. Creating it.")
+            self.client.create_database(database)
+        
+        self.client.switch_database(database)
+        print(f"Switched to database: {database}")
+
     def csv_to_influx(self, filename, database):
         """Imports CSV data to a specified measurement in the given database."""
         try:
@@ -68,8 +152,6 @@ if __name__ == "__main__":
     
     # Write data to the OrionBMS database
     handler.csv_to_influx(csv_file_path, 'OrionBMS')
-
-
 
 
 

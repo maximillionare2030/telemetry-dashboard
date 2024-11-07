@@ -10,7 +10,7 @@ const AppRouter = () => {
             <Routes>
                 <Route path="/" element={<Home/>} />
                 <Route path="*" element={<NotFound />} />
-                <Route path="/:component" element={<Home/> } />
+                <Route path="/:extension" element={<Home/> } />
                 
             </Routes>
         </Router>

@@ -1,17 +1,33 @@
-// api.js
-const API_BASE_URL = "http://localhost:8000/api";
+// api/api.js
 
-export const getInfluxInfo = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/influx/get/info`);
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        return await response.json();
-    } catch (error) {
-        console.error("Failed to fetch InfluxDB info:", error);
-        throw error; // Re-throw the error for further handling if needed
+export const fetchInfluxInfo = async () => {
+    /***
+     * @api To retrieve higher level data from InfluxDB
+     */
+    const response = await fetch('http://localhost:8000/api/influx/get/info'); // Use the full URL
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
     }
+    return response.json(); // This should return the data in JSON format
 };
 
-// Other API functions can be added here
+export const fetchPoints = async (database, measurementName) => {
+    /**
+     * @api To fetch points from InfluxDB (JSON format)
+     */
+    const response = await fetch('http://localhost:8000/api/influx/get/points', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            database: database,
+            measurement_name: measurementName,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json(); // This should return the data in JSON format
+};
