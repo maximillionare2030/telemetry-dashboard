@@ -176,25 +176,31 @@ function LineChart() {
               <Text fontWeight="semibold">Available Databases:</Text>
               {databases.length > 0 ? (
                 databases.map((db, index) => (
-                  <Text key={index} pl={4}>{JSON.stringify(db)}</Text>
+                  <Text key={index} pl={4}>
+                    {typeof db === 'object' ? JSON.stringify(db) : db}
+                  </Text>
                 ))
               ) : (
                 <Text pl={4}>No databases found.</Text>
               )}
             </Box>
             
-            <Box>
-              <Text fontWeight="semibold">Raw Response Data:</Text>
-              <pre style={{ 
-                background: '#f5f5f5', 
-                padding: '10px', 
-                borderRadius: '4px',
-                maxHeight: '200px',
-                overflow: 'auto'
-              }}>
-                {JSON.stringify(rawData, null, 2)}
-              </pre>
-            </Box>
+            {rawData && (
+              <Box>
+                <Text fontWeight="semibold">Raw Response Data:</Text>
+                <pre style={{ 
+                  background: '#f5f5f5', 
+                  padding: '10px', 
+                  borderRadius: '4px',
+                  maxHeight: '200px',
+                  overflow: 'auto'
+                }}>
+                  {typeof rawData === 'object' ? 
+                    JSON.stringify(rawData, null, 2) : 
+                    rawData}
+                </pre>
+              </Box>
+            )}
           </VStack>
         )}
       </Box>

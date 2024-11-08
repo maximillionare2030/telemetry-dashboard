@@ -1,33 +1,22 @@
-import os
-from dotenv import load_dotenv
-from influxdb_client import InfluxDBClient
+from influxdb import InfluxDBClient
 import pandas as pd
 
-# Load environment variables from a .env file
-load_dotenv()
-
 class InfluxDBHandler:
-    def __init__(self):
-        # Get environment variables
-        self.token = os.getenv('INFLUXDB_TOKEN')
-        self.org = os.getenv('INFLUX_ORG_NAME')
-        self.url = os.getenv('INFLUXDB_URL', 'http://localhost:8086')
+    def __init__(self, host, port, username, password):
+        # Initialize the InfluxDB client
+        self.client = InfluxDBClient(host=host, port=port, username=username, password=password)
         
-        # Initialize InfluxDB client
+        # Verify connection and list databases
         try:
-            self.client = InfluxDBClient(
-                url=self.url,
-                token=self.token,
-                org=self.org
-            )
-            print("Successfully connected to InfluxDB.")
+            databases = self.get_databases()
+            print(f"Successfully connected to InfluxDB. Available databases: {databases}")
         except Exception as e:
-            print(f"Failed to connect to InfluxDB: {e}")
+            print(f"Error connecting to InfluxDB: {e}")
 
     def get_databases(self):
         """Returns a list of available databases in InfluxDB."""
         try:
-            return [db['name'] for db in self.client.get_list_database() if db['name'] != '_internal']
+            return [db['name'] for db in self.client.get_list_database()]
         except Exception as e:
             print(f"Error retrieving databases: {e}")
             return []
@@ -89,6 +78,8 @@ class InfluxDBHandler:
                 return []
 
             print(f"Retrieved {len(points)} points from measurement '{measurement_name}':")
+            for point in points:
+                print(point)
 
             return points  # Optionally return the points for further processing
 
@@ -111,6 +102,9 @@ class InfluxDBHandler:
     def csv_to_influx(self, filename, database):
         """Imports CSV data to a specified measurement in the given database."""
         try:
+            # Ensure the client is switched to the target database (create if not exists)
+            self.ensure_database(database)
+
             # Read CSV and prepare JSON data for InfluxDB
             df = pd.read_csv(filename)
             measurement_name = filename.split("\\")[-1][:-4]  # Use filename for measurement name without .csv extension
@@ -126,31 +120,36 @@ class InfluxDBHandler:
                 })
 
             # Write data to InfluxDB
-            self.write_points(json_body, database)
+            self.client.write_points(json_body)
             print("Data written successfully to InfluxDB.")
 
         except Exception as e:
             print(f"Error processing file '{filename}': {e}")
 
-    def write_points(self, json_body, bucket):
+    def influx_to_csv(self, measurement_name, output_filename, database):
+        """Exports data from a specified measurement in the given database to CSV."""
         try:
-            # Use the write_api to write data
-            write_api = self.client.write_api()
-            write_api.write(bucket=bucket, record=json_body)
-            print(f"Data written successfully to InfluxDB in bucket: {bucket}")
-            print(f"Data: {json_body}")
-        except Exception as e:
-            print(f"Failed to write data: {e}")
+            # Ensure the client is switched to the target database
+            self.client.switch_database(database)
 
-if __name__ == "__main__":
-    # Initialize the handler
-    handler = InfluxDBHandler()
-    
-    # Path to your CSV file
-    csv_file_path = "./fsae-telemetry-dashboard/backend/client/vehicle_data/Kilozott_Dummy_Data.csv"
-    
-    # Write data to the OrionBMS database
-    handler.csv_to_influx(csv_file_path, 'OrionBMS')
+            # Query data from the specified measurement
+            query = f'SELECT * FROM "{measurement_name}"'
+            result = self.client.query(query)
+            
+            # Convert query result to a DataFrame and export to CSV
+            points = list(result.get_points())
+            if not points:
+                print(f"No data found in measurement '{measurement_name}'")
+                return
+
+            df = pd.DataFrame(points)
+            df.to_csv(output_filename, index=False)
+            print(f"Data exported successfully to {output_filename}")
+
+        except Exception as e:
+            print(f"Error exporting data from measurement '{measurement_name}': {e}")
+
+
 
 
 

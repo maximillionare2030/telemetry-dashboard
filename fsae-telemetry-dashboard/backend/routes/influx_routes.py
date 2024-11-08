@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 # Create a FastAPI Router instance
 router = APIRouter()
-influx = InfluxDBHandler()
+influx = InfluxDBHandler(host="localhost", port="8086", username="root", password="root")
+
 
 class PointsRequest(BaseModel):
     database: str
