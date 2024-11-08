@@ -1,29 +1,28 @@
-from influxdb_client import InfluxDBClient
-import pandas as pd
 import os
 from dotenv import load_dotenv
+from influxdb_client import InfluxDBClient
+import pandas as pd
 
 # Load environment variables from a .env file
 load_dotenv()
 
 class InfluxDBHandler:
-    def __init__(self, host, port):
-        # Retrieve the token from the environment variables
-        token = os.getenv("INFLUXDB_TOKEN")
-        org = os.getenv("INFLUX_ORG_NAME")
+    def __init__(self):
+        # Get environment variables
+        self.token = os.getenv('INFLUXDB_TOKEN')
+        self.org = os.getenv('INFLUX_ORG_NAME')
+        self.url = os.getenv('INFLUXDB_URL', 'http://localhost:8086')
         
-        # Initialize the InfluxDB client with the token
-        self.client = InfluxDBClient(
-            url=f"http://{host}:{port}",
-            token=token,
-            org=org
-        )
-        
-        # Verify connection
+        # Initialize InfluxDB client
         try:
+            self.client = InfluxDBClient(
+                url=self.url,
+                token=self.token,
+                org=self.org
+            )
             print("Successfully connected to InfluxDB.")
         except Exception as e:
-            print(f"Error connecting to InfluxDB: {e}")
+            print(f"Failed to connect to InfluxDB: {e}")
 
     def get_databases(self):
         """Returns a list of available databases in InfluxDB."""
@@ -145,7 +144,7 @@ class InfluxDBHandler:
 
 if __name__ == "__main__":
     # Initialize the handler
-    handler = InfluxDBHandler(host='localhost', port=8086)
+    handler = InfluxDBHandler()
     
     # Path to your CSV file
     csv_file_path = "./fsae-telemetry-dashboard/backend/client/vehicle_data/Kilozott_Dummy_Data.csv"
