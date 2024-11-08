@@ -1,4 +1,5 @@
 #The following program utilizes a FastAPI backend and ReactJS frontend
+Make sure to install InfluxDB separately using this [website](https://www.influxdata.com/downloads/).
 
 #1. Install required dependencies
     
