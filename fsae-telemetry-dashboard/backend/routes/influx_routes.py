@@ -39,7 +39,7 @@ async def query_info():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve InfluxDB info: {str(e)}")
 
-@router.post("/points")
+@router.post("/get/points")
 async def get_points(request: PointsRequest):
     """Endpoint to return InfluxDB points at a given measurement and database"""
     try:
