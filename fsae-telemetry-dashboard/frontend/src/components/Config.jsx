@@ -46,24 +46,30 @@ function Config({ onChange }) { // Add onChange as a prop
                     }
                 }
                 // Toggle selected database
-                updated.databases[dbName] = updated.databases[dbName] || { isSelected: false, measurements: {} };
+                updated.databases[dbName] = updated.databases[dbName] || { 
+                    isSelected: false, 
+                    measurements: {},
+                    name: dbName
+                };
                 updated.databases[dbName].isSelected = !updated.databases[dbName].isSelected;
             } else if (level === "measurement") {
                 updated.databases[dbName].measurements[measurementName] = updated.databases[dbName].measurements[measurementName] || {
                     isSelected: false,
                     fields: {},
+                    name: measurementName
                 };
                 updated.databases[dbName].measurements[measurementName].isSelected = !updated.databases[dbName].measurements[measurementName].isSelected;
             } else if (level === "field") {
-                updated.databases[dbName].measurements[measurementName].fields[field] = updated.databases[dbName].measurements[measurementName].fields[field] || { isSelected: false };
+                updated.databases[dbName].measurements[measurementName].fields[field] = updated.databases[dbName].measurements[measurementName].fields[field] || { 
+                    isSelected: false,
+                    name: field
+                };
                 updated.databases[dbName].measurements[measurementName].fields[field].isSelected = !updated.databases[dbName].measurements[measurementName].fields[field].isSelected;
             }
             
+            onChange(updated);
             return updated;
         });
-    
-        // Call onChange to update selectedConfig in the parent
-        onChange(selectedOptions);
     };
     
 

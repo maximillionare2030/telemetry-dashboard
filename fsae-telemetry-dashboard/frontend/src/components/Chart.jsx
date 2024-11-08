@@ -5,29 +5,34 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import 'chartjs-adapter-date-fns'; // Import the date adapter
 import { fetchPoints } from '../api/api';
 
+
 Chart.register(...registerables, zoomPlugin);
 
 function LineChart({ selectedConfig }) {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const chartRef = useRef(null);
 
   useEffect(() => {
-    /**
-     * useEffect gets the selectedConfig and passes parameters to API fetch functions
-     */
     if (!selectedConfig) return;
 
     const config = extractSelectedConfig(selectedConfig);
-    if (!config || !config.database || !config.measurement || config.fields.length === 0) return;
+    if (config.error) {
+      setError(config.error);
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const result = await fetchPoints(config.database, config.measurement);
         const chartData = formatChartData(result.points, config.fields);
         setData(chartData);
       } catch (error) {
+        setError(error.message);
         console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
@@ -38,33 +43,37 @@ function LineChart({ selectedConfig }) {
   }, [selectedConfig]);
 
   const extractSelectedConfig = (config) => {
-    /**
-     * Function to receive selectedConfig from JSON object selectedConfig
-     */
-    if (!config || !config.databases) return {};
-    for (const db in config.databases) {
-      const database = config.databases[db];
-      if (database.isSelected && database.measurements) {
-        for (const meas in database.measurements) {
-          const measurement = database.measurements[meas];
-          if (measurement.isSelected && measurement.fields) {
-            const selectedFields = Object.keys(measurement.fields).filter(
-              (field) => measurement.fields[field].isSelected
-            );
-            if (selectedFields.length > 0) {
-              return { database: db, measurement: meas, fields: selectedFields };
-            }
-          }
-        }
-      }
+    if (!config || !config.databases) {
+      console.error("No databases found in the config.");
+      return { error: "No databases found." };
     }
-    return {};
+
+    const database = Object.values(config.databases).find(db => db.isSelected && db.measurements);
+    if (!database) {
+      console.error("No selected database with measurements found.");
+      return { error: "No selected database with measurements found." };
+    }
+
+    const measurement = Object.values(database.measurements).find(meas => meas.isSelected && meas.fields);
+    if (!measurement) {
+      console.error("No selected measurement with fields found.");
+      return { error: "No selected measurement with fields found." };
+    }
+
+    const selectedFields = Object.keys(measurement.fields).filter(field => measurement.fields[field].isSelected);
+    if (selectedFields.length === 0) {
+      console.error("No selected fields found.");
+      return { error: "No selected fields found." };
+    }
+
+    return {
+      database: database.name,
+      measurement: measurement.name,
+      fields: selectedFields
+    };
   };
 
   const formatChartData = (points, fields) => {
-    /***
-     * Add dataset to CHARTJS chart
-     */
     return fields.map((field) => ({
       label: field,
       data: points.map((point) => ({
@@ -77,9 +86,6 @@ function LineChart({ selectedConfig }) {
   };
 
   const getRandomColor = () => {
-    /**
-     * Generate a random color HEX code, to be passed to chart data
-     */
     const letters = '0123456789ABCDEF';
     let color = '#';
     for (let i = 0; i < 6; i++) {
@@ -122,12 +128,17 @@ function LineChart({ selectedConfig }) {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {loading ? (
         <p>Loading...</p>
+      ) : data.length > 0 ? (
+        <>
+          <Line ref={chartRef} data={{ datasets: data }} options={options} />
+          <button onClick={() => chartRef.current.resetZoom()}>Reset Zoom</button>
+        </>
       ) : (
-        <Line ref={chartRef} data={{ datasets: data }} options={options} />
+        <p>No data available. Please select database, measurement, and fields.</p>
       )}
-      <button onClick={() => chartRef.current.resetZoom()} style={{ marginLeft: 'auto' }}>Reset Zoom</button>
     </div>
   );
 }

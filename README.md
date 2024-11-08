@@ -1,14 +1,14 @@
-#The following program utilizes a FastAPI backend and ReactJS frontend
+# The following program utilizes a FastAPI backend and ReactJS frontend
 Make sure to install InfluxDB separately using this [website](https://www.influxdata.com/downloads/).
 
-#1. Install required dependencies
+## 1. Install required dependencies
     
 pip install -r requirements.txt
 npm install package.json
 
-#In order to successfully run the development build of the dashboard do the following in separate terminals:
+In order to successfully run the development build of the dashboard do the following in separate terminals:
 
-#Terminal 1: Start the backend (localhost:8000)
+- Terminal 1: Start the backend (localhost:8000)
 
 cd backend
 python main.py runserver
