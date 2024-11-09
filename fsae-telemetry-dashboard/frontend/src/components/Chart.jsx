@@ -16,18 +16,20 @@ function LineChart() {
   const [databases, setDatabases] = useState([]);
   const [rawData, setRawData] = useState(null);
 
-  // fetch the databases and store them in the state
+  // Fetch available databases on component mount
   useEffect(() => {
     const fetchDatabases = async () => {
       try {
         const response = await fetchInfluxInfo();
-        // test display data
         console.log("=== Database Information ===");
         console.log("Raw response:", response);
-        console.log("Databases:", response.info.databases);
-        console.log("Selected Config:", selectedConfig);
-
-        setDatabases(response.info.databases);
+        
+        // Convert database object to array if needed
+        const dbArray = Array.isArray(response.info.databases) 
+          ? response.info.databases 
+          : Object.values(response.info.databases);
+        
+        setDatabases(dbArray);
         setRawData(response);
         setLoading(false);
       } catch (error) {
@@ -39,7 +41,6 @@ function LineChart() {
     fetchDatabases();
   }, []);
 
-  // fetch the data based on the selected config
   useEffect(() => {
     const config = extractSelectedConfig(selectedConfig);
     if (config.error) {
@@ -75,25 +76,30 @@ function LineChart() {
       return { error: "No databases found." };
     }
 
-    const database = Object.values(config.databases).find(
-      (db) => db.isSelected && db.measurements
-    );
-    if (!database) {
+    // Convert to array and find selected database
+    const databaseArray = Array.from(Object.values(config.databases));
+    const database = databaseArray.find(db => db.isSelected);
+    
+    if (!database || !database.measurements) {
       console.error("No selected database with measurements found.");
       return { error: "No selected database with measurements found." };
     }
 
-    const measurement = Object.values(database.measurements).find(
-      (meas) => meas.isSelected && meas.fields
-    );
-    if (!measurement) {
+    // Convert measurements to array and find selected measurement
+    const measurementArray = Array.from(Object.values(database.measurements));
+    const measurement = measurementArray.find(meas => meas.isSelected);
+    
+    if (!measurement || !measurement.fields) {
       console.error("No selected measurement with fields found.");
       return { error: "No selected measurement with fields found." };
     }
 
-    const selectedFields = Object.keys(measurement.fields).filter(
-      (field) => measurement.fields[field].isSelected
-    );
+    // Convert fields to array and filter selected ones
+    const fieldsArray = Array.from(Object.entries(measurement.fields));
+    const selectedFields = fieldsArray
+      .filter(([_, field]) => field.isSelected)
+      .map(([fieldName, _]) => fieldName);
+
     if (selectedFields.length === 0) {
       console.error("No selected fields found.");
       return { error: "No selected fields found." };
@@ -102,7 +108,7 @@ function LineChart() {
     return {
       database: database.name,
       measurement: measurement.name,
-      fields: selectedFields,
+      fields: selectedFields
     };
   };
 
@@ -163,7 +169,6 @@ function LineChart() {
 
   return (
     <>
-      {/* display the database information */}
       <Box p={4} bg="gray.50" borderRadius="md" mb={4}>
         <Text fontSize="xl" fontWeight="bold" mb={2}>Database Information</Text>
         {loading ? (
@@ -177,35 +182,17 @@ function LineChart() {
               {databases.length > 0 ? (
                 databases.map((db, index) => (
                   <Text key={index} pl={4}>
-                    {typeof db === 'object' ? JSON.stringify(db) : db}
+                    {typeof db === 'string' ? db : JSON.stringify(db)}
                   </Text>
                 ))
               ) : (
                 <Text pl={4}>No databases found.</Text>
               )}
             </Box>
-            
-            {rawData && (
-              <Box>
-                <Text fontWeight="semibold">Raw Response Data:</Text>
-                <pre style={{ 
-                  background: '#f5f5f5', 
-                  padding: '10px', 
-                  borderRadius: '4px',
-                  maxHeight: '200px',
-                  overflow: 'auto'
-                }}>
-                  {typeof rawData === 'object' ? 
-                    JSON.stringify(rawData, null, 2) : 
-                    rawData}
-                </pre>
-              </Box>
-            )}
           </VStack>
         )}
       </Box>
 
-      {/* display the selection options */}
       <VStack spacing={4} width="100%" height="100%">
         <Box width="100%">
           <Selection
@@ -216,9 +203,9 @@ function LineChart() {
         </Box>
 
         <Box width="100%" flex="1">
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <Text color="red.500">{error}</Text>}
           {loading ? (
-            <p>Loading...</p>
+            <Text>Loading...</Text>
           ) : data.length > 0 ? (
             <>
               <Line
@@ -231,13 +218,12 @@ function LineChart() {
               </button>
             </>
           ) : (
-            <p>
-              No data available. Please select database, measurement, and
-              fields.
-            </p>
+            <Text>
+              No data available. Please select database, measurement, and fields.
+            </Text>
           )}
         </Box>
-      </VStack>{" "}
+      </VStack>
     </>
   );
 }
