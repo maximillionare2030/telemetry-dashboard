@@ -8,6 +8,7 @@ import {
   Center,
   Text,
 } from "@chakra-ui/react";
+import 
 
 import { useParams } from 'react-router-dom';
 import LineChart from "../components/Chart";
