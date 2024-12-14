@@ -53,3 +53,5 @@ async def get_points(request: PointsRequest):
         return {"points": points}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve points: {str(e)}")
+    
+

@@ -1,11 +1,11 @@
-from langchain import OpenAI
+from langchain_openai import OpenAI, OpenAIEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 import pandas as pd
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 
 class Analysis:
@@ -13,14 +13,57 @@ class Analysis:
     Analyze telemetry data based on Formula SAE Guidelines
     """
 
-    def __init__(self, pdf_dictionary="../data/training"):
+    def __init__(self, pdf_directory="../data/training"):
         """ 
         Initialize elements to use for analysis
         """
-        load_dotenv()
-        self.llm = OpenAI(temperature=0)
-        self.pdf_dictionary = pdf_dictionary
+        load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+        api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            raise ValueError("OpenAI API key not found in environment variables")
+            
+        self.llm = OpenAI(
+            temperature=0,
+            openai_api_key=api_key
+        )
+        
+        self.pdf_directory = pdf_directory
+        if not os.path.exists(self.pdf_directory):
+            os.makedirs(self.pdf_directory)
+            raise ValueError(f"Created PDF directory at {self.pdf_directory}. Please add PDF files before analyzing.")
+            
         self.knowledge_base = self._create_knowledge_base()
+    
+    def _parse_timestamp(self, timestamp_str, return_type):
+        """ 
+        Parse timestamp based on the return type
+        """
+        # format timestamp to remove the 'Z'
+        timestamp_str = timestamp_str.replace('000Z', '')
+        dt = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
+        
+        if return_type == 'date':
+            return dt.strftime('%Y-%m-%d')
+        elif return_type == 'time':
+            return dt.strftime('%H:%M:%S')
+        else:
+            raise ValueError(f"Invalid return type: {return_type}")
+        
+    def _preprocess_data(self, df):
+        """ 
+        Convert timestamps to a datatime object
+        """
+        # convert the timestamp column in the dataframe to a timestamp object
+        df['date'] = df['timestamp'].apply(lambda x: self._parse_timestamp(x, 'date'))
+        df['time'] = df['timestamp'].apply(lambda x: self._parse_timestamp(x, 'time'))
+        df.drop(columns=['timestamp'], inplace=True)
+
+        # reorder columns
+        columns = ['date', 'time'] + [col for col in df.columns 
+                                    if col not in ['date', 'time', 'timestamp']]
+        # return the final dataframe
+        return df[columns]
     
     def _create_knowledge_base(self):
         """ 
@@ -29,10 +72,14 @@ class Analysis:
         documents = []
 
         # load all pdfs in the directory
-        for file in os.listdir(self.pdf_dictionary):
-            if file.endswith(".pdf"):
-                loader = PyPDFLoader(os.path.join(self.pdf_dictionary, file))
-                documents.extend(loader.load())
+        pdf_files = [f for f in os.listdir(self.pdf_directory) if f.endswith('.pdf')]
+        
+        if not pdf_files:
+            raise ValueError(f"No PDF files found in {self.pdf_directory}")
+            
+        for file in pdf_files:
+            loader = PyPDFLoader(os.path.join(self.pdf_directory, file))
+            documents.extend(loader.load())
         
         # split into chunks
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -41,21 +88,23 @@ class Analysis:
         # create embeddings
         # used for similarity search to extract relevant information
         embeddings = OpenAIEmbeddings()
-        vector_store = FAISS.from_documents(texts, embeddings)
+        return FAISS.from_documents(texts, embeddings)  # Return the vector store
 
     def analyze_telemetry(self, df: pd.DataFrame):
         """ 
         Analyze telemetry data using the knowledge base
         """
-        # create a retrieval chain
-        # pipeline used to query the knowledge base
+        # Preprocess the data first
+        df = self._preprocess_data(df)
+        
+        # Create retrieval chain
         qa_chain = RetrievalQA.from_chain_type(
             llm=self.llm, # response generation
             chain_type="stuff", # use the document as context
             retriever=self.knowledge_base.as_retriever() # retrieves elements from knowledge base
         )
 
-        # convert data
+        # Format data for analysis
         data_description = self._format_data_for_analysis(df)
 
         # generate prompt
@@ -77,19 +126,22 @@ class Analysis:
         # run the chain
         result = qa_chain.run(prompt)
         return result
-    
+
     def _format_data_for_analysis(self, df: pd.DataFrame):
         """
         Format DataFrame into a string for analysis
         """
-        # ex: Telemetry data for period 1 to 10
-        summary = f"Telemetry data for period {df['period'].iloc[0]} to {df['period'].iloc[-1]}\n\n"
-
-        # add a summary for each column
-        for column in ['motorSPD', 'motorTEMP', 'packVOLT', 'packTEMP', 'packCURR', 'packCCL']:
-            summary += f"{column}:\n"
-            summary += f" - Range: {df[column].min()} to {df[column].max()}\n"
-            summary += f" - Average: {df[column].mean():.2f}\n"
-
+        # Create summary of the data
+        summary = f"Telemetry data analysis from {df['date'].iloc[0]} {df['time'].iloc[0]} to {df['date'].iloc[-1]} {df['time'].iloc[-1]}\n\n"
+        
+        # Add statistics for each telemetry metric
+        metrics = ['motorSPD', 'motorTEMP', 'packVOLT', 'packTEMP', 'packCURR', 'packCCL']
+        for metric in metrics:
+            if metric in df.columns:
+                summary += f"{metric}:\n"
+                summary += f"  Min: {df[metric].min()}\n"
+                summary += f"  Max: {df[metric].max()}\n"
+                summary += f"  Average: {df[metric].mean():.2f}\n"
+                summary += f"  Latest Value: {df[metric].iloc[-1]}\n\n"
+        
         return summary
-
