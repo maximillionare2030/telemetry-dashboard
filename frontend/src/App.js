@@ -1,6 +1,8 @@
 import React from 'react';
 import AppRouter from './AppRouter'; // import the router to use routes
-import './App.sass'; 
+import './styles/App.sass';
+import './styles/components.sass';
+import './styles/global.sass';
 
 function App() {
   return (
