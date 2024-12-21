@@ -13,7 +13,7 @@ class Analysis:
     Analyze telemetry data based on Formula SAE Guidelines
     """
 
-    def __init__(self, pdf_directory="../data/training"):
+    def __init__(self, pdf_directory=None):
         """ 
         Initialize elements to use for analysis
         """
@@ -23,16 +23,32 @@ class Analysis:
         if not api_key:
             raise ValueError("OpenAI API key not found in environment variables")
             
+        # Use absolute path for PDF directory
+        if pdf_directory is None:
+            pdf_directory = os.path.abspath(os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
+                'data',
+                'training'
+            ))
+        
+        self.pdf_directory = pdf_directory
+        # raise error if pdf directory does not exist
+        if not os.path.exists(self.pdf_directory):
+            os.makedirs(self.pdf_directory)
+            raise ValueError(f"Created PDF directory at {self.pdf_directory}. Please add PDF files before analyzing.")
+            
+        # Verify PDF files exist
+        pdf_files = [f for f in os.listdir(self.pdf_directory) if f.endswith('.pdf')]
+        
+        # raise error if no pdf files are found
+        if not pdf_files:
+            raise ValueError(f"No PDF files found in {self.pdf_directory}. Directory exists but is empty.")
+        
         self.llm = OpenAI(
             temperature=0,
             openai_api_key=api_key
         )
         
-        self.pdf_directory = pdf_directory
-        if not os.path.exists(self.pdf_directory):
-            os.makedirs(self.pdf_directory)
-            raise ValueError(f"Created PDF directory at {self.pdf_directory}. Please add PDF files before analyzing.")
-            
         self.knowledge_base = self._create_knowledge_base()
     
     def _parse_timestamp(self, timestamp_str, return_type):

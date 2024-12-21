@@ -8,7 +8,7 @@ import {
   Center,
   Text,
 } from "@chakra-ui/react";
-import 
+import Chat from "../components/Chat";
 
 import { useParams } from 'react-router-dom';
 import LineChart from "../components/Chart";
@@ -55,7 +55,7 @@ function Home() {
       </Flex>
 
       {/* Main Content Area */}
-
+      <Chat />
 
       <Flex
         direction="column" 

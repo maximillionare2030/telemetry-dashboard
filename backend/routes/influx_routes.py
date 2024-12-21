@@ -1,15 +1,20 @@
 from fastapi import APIRouter, HTTPException
-from client.influxv1 import InfluxDBHandler
+from client.influx import InfluxDBClientHandler
 from pydantic import BaseModel
+import logging
 
-# Create router with explicit path prefix
+# set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create router with prefix
 router = APIRouter(
-    prefix="/api/influx",  # Base path for all routes in this router
-    tags=["InfluxDB"]      # OpenAPI tag for documentation
+    prefix="/api/influx",
+    tags=["influx"],
+    responses={404: {"description": "Not found"}},
 )
 
-influx = InfluxDBHandler(host="localhost", port="8086", username="root", password="root")
-
+influx = InfluxDBClientHandler(url="http://localhost:8086", token="", org="FSAE")
 
 class PointsRequest(BaseModel):
     database: str
