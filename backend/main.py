@@ -1,11 +1,13 @@
 import uvicorn
 from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from client.influx import InfluxDBClientHandler
+from client.influxv1 import InfluxDBHandler
 from utils.analysis import Analysis
 from pydantic import BaseModel
 import pandas as pd
 import logging
+from fastapi import File, UploadFile, Form
+import os
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +35,13 @@ app.add_middleware(
 )
 
 # Initialize services
-influx = InfluxDBClientHandler(url="http://localhost:8086", token="", org="FSAE")
+influx = InfluxDBHandler(
+    host='localhost',
+    port=8086,
+    username='',
+    password=''
+)
+
 analyzer = Analysis()
 
 # Request models
@@ -49,6 +57,9 @@ async def read_root():
 # Influx routes
 @app.get("/api/influx/get/info")
 async def query_info():
+    """ 
+    Return info about the influxdb
+    """
     try:
         info = {"databases": []}
         databases = influx.get_databases()
@@ -71,11 +82,41 @@ async def query_info():
 
 @app.post("/api/influx/get/points")
 async def get_points(request: PointsRequest):
+    """ 
+    Return a datapoint from influxdb
+    """
     try:
         points = influx.get_points(request.database, request.measurement_name)
         if not points:
             raise HTTPException(status_code=404, detail="No points found")
         return {"points": points}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/influx/upload")
+async def upload_data(file: UploadFile = File(...), database: str = Form(...)):
+    """ 
+    Upload info from a file to influxdb
+    Parameters:
+        file: takes a file uploaded to a form
+        database: takes a database name from the form
+    """
+    try:
+        # read the uploaded file
+        contents = await file.read()
+        temp_file_path = f"temp_{file.filename}"
+
+        # save file temporarily
+        with open(temp_file_path, "wb") as f:
+            f.write(contents)
+
+        # upload to influxdb
+        influx.csv_to_influx(temp_file_path, database)
+
+        # clean up and remove temp file
+        os.remove(temp_file_path)
+
+        return {"message": "Data uploaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

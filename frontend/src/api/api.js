@@ -1,4 +1,4 @@
-// api/api.js
+// handle api requests to the backend
 
 export const fetchInfluxInfo = async () => {
     /***
@@ -31,3 +31,26 @@ export const fetchPoints = async (database, measurementName) => {
     }
     return response.json(); // This should return the data in JSON format
 };
+
+export const uploadData = async (file, database) => {
+    /**
+     * @api to upload data to InfluxDB with user provided params (file, database)
+     */
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('database', database);
+
+    // send the form data to the backend
+    const response = await fetch('http://localhost:8000/api/influx/upload', {
+        method: 'POST',
+        body: formData,
+    })
+
+    // handle error
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    
+    // return the response in JSON format
+    return response.json();
+}

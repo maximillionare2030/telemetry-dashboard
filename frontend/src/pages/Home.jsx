@@ -8,11 +8,11 @@ import {
   Center,
   Text,
 } from "@chakra-ui/react";
-import Chat from "../components/Chat";
 
 import { useParams } from 'react-router-dom';
 import LineChart from "../components/Chart";
 import Config from "../components/Config";
+import DataUploader from "../components/DataUploader";
 
 function Home() {
   const { extension } = useParams();
@@ -55,7 +55,7 @@ function Home() {
       </Flex>
 
       {/* Main Content Area */}
-      <Chat />
+      <DataUploader />
 
       <Flex
         direction="column" 
