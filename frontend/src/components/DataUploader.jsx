@@ -61,6 +61,7 @@ const DataUploader = () => {
                 accept=".csv"
                 // set the file state to the file selected by the user
                 onChange={(e) => setFile(e.target.files[0])}
+                className="file-input"
             />
             {/* database input */}
             {!showNewDbInput ? (

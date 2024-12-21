@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 import LineChart from "../components/Chart";
 import Config from "../components/Config";
 import DataUploader from "../components/DataUploader";
-
+import Collapsable from "../components/chat/Collapsable";
 function Home() {
   const { extension } = useParams();
   const component = extension ? extension.charAt(0).toUpperCase() + extension.slice(1) : '';
@@ -53,6 +53,8 @@ function Home() {
           ))}
         </Breadcrumb>
       </Flex>
+      {/* collapsable */}
+      <Collapsable title="Chat" />
 
       {/* Main Content Area */}
       <DataUploader />
@@ -70,23 +72,6 @@ function Home() {
 
           {/* Config Component */}
         <Config onChange={handleConfigSelectionChange} /> {/* Pass handler to Config */}
-
-        {/* Databox section (WAS NOT ABLE TO IMPLEMENT)
-        <Center
-          border="1px solid grey"
-          padding="0.5rem"
-          width="auto"
-          margin={margin}
-          height="15.0rem"
-        >
-          <Grid templateColumns="repeat(4, 1fr)" gap={5} width="100%">
-            <Box height="100%">
-              <Databox measurement="motor_data"/>
-            </Box>
-          </Grid>
-        </Center>
-
-        */}
 
         {/* Graphing */}
         <Center
