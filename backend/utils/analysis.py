@@ -54,21 +54,6 @@ class Analysis:
             return dt.strftime('%H:%M:%S')
         else:
             raise ValueError(f"Invalid return type: {return_type}")
-        
-    def _preprocess_data(self, df):
-        """ 
-        Convert timestamps to a datatime object
-        """
-        # convert the timestamp column in the dataframe to a timestamp object
-        df['date'] = df['timestamp'].apply(lambda x: self._parse_timestamp(x, 'date'))
-        df['time'] = df['timestamp'].apply(lambda x: self._parse_timestamp(x, 'time'))
-        df.drop(columns=['timestamp'], inplace=True)
-
-        # reorder columns
-        columns = ['date', 'time'] + [col for col in df.columns 
-                                    if col not in ['date', 'time', 'timestamp']]
-        # return the final dataframe
-        return df[columns]
     
     def _create_knowledge_base(self):
         """ 
@@ -95,51 +80,17 @@ class Analysis:
         embeddings = OpenAIEmbeddings()
         return FAISS.from_documents(texts, embeddings)  # Return the vector store
 
-    def analyze_telemetry(self, df: pd.DataFrame):
-        """ 
-        Analyze telemetry data using the knowledge base
-        """
-        # Preprocess the data first
-        df = self._preprocess_data(df)
-        
-        # Create retrieval chain
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm, # response generation
-            chain_type="stuff", # use the document as context
-            retriever=self.knowledge_base.as_retriever() # retrieves elements from knowledge base
-        )
+    def _format_data_for_analysis(self, data):
+        if isinstance(data, pd.DataFrame):
+            return self._format_dataframe(data)
+        elif isinstance(data, dict):
+            return self._format_measurements(data)
+        else:
+            raise ValueError("Unsupported data format for analysis")
 
-        # Format data for analysis
-        data_description = self._format_data_for_analysis(df)
-
-        # generate prompt
-        prompt = f"""
-        You are an expert in Formula SAE telemetry data and analysis of electric race cars.
-        You will analyze telemetry data based on the provided guidelines:
-        {data_description}
-
-        Identify any values that are:
-        1. Outside of the safe operating ranges
-        2. Showing concerning trends or patterns of behavior over time
-        3. Requiring immediate attention
-
-        Format the response a concise, short structured analysis with clear recommendations. 
-        Assume that the driver will be referencing this analysis during a live race and need to 
-        make decisions within within minutes. The information should be concise and easy to digest.
-        """
-
-        # run the chain
-        result = qa_chain.run(prompt)
-        return result
-
-    def _format_data_for_analysis(self, df: pd.DataFrame):
-        """
-        Format DataFrame into a string for analysis
-        """
-        # Create summary of the data
+    def _format_dataframe(self, df):
         summary = f"Telemetry data analysis from {df['date'].iloc[0]} {df['time'].iloc[0]} to {df['date'].iloc[-1]} {df['time'].iloc[-1]}\n\n"
         
-        # Add statistics for each telemetry metric
         metrics = ['motorSPD', 'motorTEMP', 'packVOLT', 'packTEMP', 'packCURR', 'packCCL']
         for metric in metrics:
             if metric in df.columns:
@@ -151,7 +102,13 @@ class Analysis:
         
         return summary
 
-    async def analyze_data(self, message: str):
+    def _format_measurements(self, all_data):
+        return "\n".join([
+            f"{measurement}: {len(points)} points" 
+            for measurement, points in all_data.items()
+        ])
+
+    async def analyze_data(self, message: str = None):
         try:
             # Get measurements and their data points
             measurements = self.influx.get_measurements()
@@ -168,40 +125,37 @@ class Analysis:
             if not all_data:
                 return "No data points found in measurements."
             
-            # Format data for analysis
-            data_summary = "\n".join([
-                f"{measurement}: {len(points)} points" 
-                for measurement, points in all_data.items()
-            ])
+            data_summary = self._format_data_for_analysis(all_data)
+            prompt = self._create_analysis_prompt(data_summary, message)
             
-            prompt = f"""
-            Analyzing telemetry data:
-            {data_summary}
-            
-            User question: {message}
-            
-            Please analyze this Formula SAE telemetry data and provide insights about:
-            1. Key metrics and their values
-            2. Any anomalies or concerns
-            3. Recommendations based on the data
-            """
-            
-            # Get response from GPT
-            response = await self._get_gpt_response(prompt)
-            return response
-            
-        except Exception as e:
-            logger.error(f"Analysis error: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
-
-    async def _get_gpt_response(self, prompt: str) -> str:
-        try:
             qa_chain = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
                 retriever=self.knowledge_base.as_retriever()
             )
             return qa_chain.run(prompt)
+            
         except Exception as e:
-            logger.error(f"GPT response error: {str(e)}")
+            logger.error(f"Analysis error: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    def _create_analysis_prompt(self, data_summary, message=None):
+        base_prompt = prompt = f"""
+        You are an expert in Formula SAE telemetry data and analysis of electric race cars.
+        You will analyze telemetry data stored inside of the influxdb database based on the provided guidelines:
+        {data_summary}
+
+        Identify any values that are:
+        1. Outside of the safe operating ranges
+        2. Showing concerning trends or patterns of behavior over time
+        3. Requiring immediate attention
+
+        Format the response a concise, short structured analysis with clear recommendations. 
+        Assume that the driver will be referencing this analysis during a live race and need to 
+        make decisions within within minutes. The information should be concise and easy to digest.
+        """
+        
+        if message:
+            base_prompt += f"\nUser question: {message}"
+            
+        return base_prompt

@@ -32,6 +32,9 @@ Check what is inside of the database:
 `SHOW TAG KEYS ON <measurement_name>` will show the tags and tag type of the measurement
 `SELECT * FROM <measurement_name> LIMIT 10` will show the first 10 rows of the measurement
 
+example: 
+`SELECT * FROM "Kilozott_Dummy_Data" LIMIT 10`
+
 ### Useful commands
 DROP DATABASE <database_name>  # drop the database (delete)
 clear <database_name>  # clear tables
