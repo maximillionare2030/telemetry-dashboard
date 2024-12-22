@@ -113,6 +113,57 @@ async def upload_data(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/influx/get/mean")
+async def get_mean():
+    """
+    Return mean of the data from influxdb
+    """
+    try:
+        measurements = influx.get_measurements()
+        logger.info(f"Found measurements: {measurements}")
+        
+        if not measurements:
+            return {"message": "No measurements found"}
+            
+        # define key params to track
+        key_metrics = {
+            'motorSPD': 'Motor Speed',
+            'motorTEMP': 'Motor Temperature',
+            'packVOLT': 'Pack Voltage',
+            'packTEMP': 'Pack Temperature',
+            'packCURR': 'Pack Current',
+            'packCCL': 'Pack CCL'
+        }
+
+        means = {}
+
+        #* only accessing the first measurement for now. In the future, allow user to select the measurment to analyze
+        measurement = measurements[0]  # Get the first measurement
+        
+        for metric, display_name in key_metrics.items():
+            try:
+                query = f'SELECT MEAN("{metric}") as mean FROM "{measurement}"'
+                result = influx.client.query(query)
+                
+                if result:
+                    points = list(result.get_points())
+                    if points and len(points) > 0:
+                        mean_value = points[0].get('mean')  
+                        if mean_value is not None:
+                            means[display_name] = round(float(mean_value), 2)
+                            logger.info(f"Successfully processed {display_name}: {means[display_name]}")
+            
+            except Exception as e:
+                logger.error(f"Error processing metric {metric}: {str(e)}")
+                continue
+
+        logger.info(f"Final means: {means}")
+        return means
+        
+    except Exception as e:
+        logger.error(f"Error in get_mean: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Analysis routes
 @app.post("/api/analysis/analyze")
 async def analyze_data(request: AnalysisRequest):

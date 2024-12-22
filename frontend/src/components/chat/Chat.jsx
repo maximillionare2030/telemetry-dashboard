@@ -6,7 +6,7 @@ const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    // ref to the end of the messages container
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const messagesEndRef = useRef(null);
 
     // function to scroll to bottom of chat
@@ -53,16 +53,18 @@ const Chat = () => {
 
     return(
         <div className="container chat">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto">
                 <Subheader title="Chat" isCollapsible={false}/>
                 {/* map message roles to ui */}
-                {messages.map((message, index) => (
-                    <div key={index}>
-                        <div className={`message--${message.role}`}>
-                            {message.content}
+                <div className="message-container">
+                    {messages.map((message, index) => (
+                        <div key={index}>
+                            <div className={`message--${message.role}`}>
+                                {message.content}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
 
                 {/* loading */}
                 {loading && (
@@ -78,7 +80,7 @@ const Chat = () => {
             </div>
 
             {/* handle input */}
-            <form onSubmit={handleSubmit} className="border-t p-4">
+            <form onSubmit={handleSubmit} className="form-input-wrapper">
                 <div className="row">
                     <input 
                     type="text"

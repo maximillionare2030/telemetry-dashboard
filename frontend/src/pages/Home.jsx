@@ -17,6 +17,7 @@ import DataUploader from "../components/chat/DataUploader";
 import Chat from "../components/chat/Chat";
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
+import Databox from "../components/stats/Databox";
 
 function Home() {
   const { extension } = useParams();
@@ -65,10 +66,12 @@ function Home() {
             }
           />
 
-          {/* Data */}
+          {/* Statistics container*/}
           <Flex className="container main-content">
             {/* Title */}
-            <Text fontSize="1.25rem">{component} Management</Text>
+            <div className="title" >{component} Management</div>
+            {/* Statistics overview */}
+            <Databox />
             {/* Config Component */}
             <Config onChange={handleConfigSelectionChange} />{" "}
             {/* Pass handler to Config */}

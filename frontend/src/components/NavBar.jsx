@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import anteaterLogo from "../images/anteaterLogoWide.svg";
 
 const navItems = [
   { name: "Home", icon: "fa-solid fa-house" },
@@ -8,6 +9,8 @@ const navItems = [
 const NavBar = () => {
   return (
     <nav className="navbar">
+      <img src={anteaterLogo} alt="anteaterLogo" style={{ width: "80px" }}/>
+      <div className="divider"></div>
       {navItems.map((item) => (
         <div
           key={item.name}

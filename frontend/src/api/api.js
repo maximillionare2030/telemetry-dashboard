@@ -91,3 +91,20 @@ export const analyzeData = async (message) => {
         throw error;
     }
 };
+
+export const fetchMeanData = async () => {
+    /**
+     * @api to fetch mean of the data from influxdb
+     */
+    try {
+        const response = await fetch('http://localhost:8000/api/influx/get/mean');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        // return the response in JSON format
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching mean data:', error);
+        throw error;
+    }
+};

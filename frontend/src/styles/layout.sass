@@ -13,6 +13,26 @@
     .subheading
         padding: 8px
 
+@mixin row
+    display: flex
+    flex-direction: row
+    gap: 8px
+    height: 100%
+    width: -webkit-fill-available
+
+.row
+    @include row
+
+@mixin column
+    display: flex
+    flex-direction: column
+    gap: 8px
+    height: 100%
+    width: -webkit-fill-available
+
+.column
+    @include column
+
 .container
     display: flex
     flex-direction: column
@@ -23,33 +43,45 @@
     gap: 12px
     overflow: auto
     @include subheading
+    &.row
+        gap: 0px
     &.chat
         overflow-y: scroll
         height: 100%
-        padding: 0 12px 12px 12px
+        padding: 0 12px 0 12px
         justify-content: space-between
         gap: 18px
-    &.row
-        gap: 0px
+        min-height: 61vh
+        .message-container
+            overflow-y: scroll
+            height: 100%
+            padding: 8px
+            gap: 12px
+            display: flex
+            flex-direction: column
     &.main-content
         width: 100%
         display: flex
         flex-direction: column
         gap: 8px
         height: 100%
-
-.row
-    display: flex
-    flex-direction: row
-    gap: 8px
-    height: 100%
-
-.column
-    display: flex
-    flex-direction: column
-    gap: 8px
-    height: 100%
-    width: -webkit-fill-available
+    &.databox
+        display: flex
+        @include row
+        gap: 8px
+        height: fit-content
+        width: -webkit-fill-available
+        border: $outline
+        .databox-item
+            @include column
+            align-content: flex-start
+            gap: 8px
+            padding: 8px
+            border: $outline
+            .subheading
+                @include subheading
+            .number
+                @include title
 
 .main-content-wrapper
     width: -webkit-fill-available

@@ -49,6 +49,7 @@ button
     border-right: $outlineLight
     overflow: hidden
     position: sticky
+    max-height: 95vh
     top: 0
     
     &.open
@@ -94,9 +95,22 @@ form input, input
     &:hover
         background-color: $card-hover
         cursor: pointer
+        color: $heading
     &:focus
         border: 1px solid white
+        color: $heading
     
+.form-input-wrapper
+    width: 100%
+    display: flex
+    flex-direction: row
+    background: $background !important
+    border-top: $outlineLight
+    bottom: 0
+    position: sticky
+    height: fit-content
+    padding: 8px
+
 .message
     display: flex
     flex-wrap: wrap

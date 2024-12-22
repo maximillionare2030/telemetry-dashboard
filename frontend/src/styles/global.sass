@@ -29,7 +29,7 @@
     text-rendering: optimizeLegibility 
     -webkit-font-smoothing: antialiased 
     -moz-osx-font-smoothing: grayscale 
-    line-height: 1 
+    line-height: 1.25
 
 body, html
     margin: 0
@@ -48,19 +48,31 @@ body, html
 
 @mixin title
     font-size: $title-size
-    font-weight: 600
+    font-weight: 400
     color: $heading
+
+.title
+    @include title
 
 @mixin subheading
     font-size: $subheading-size
     font-weight: 400
     color: $heading
 
+.subheading
+    @include subheading
+
 p
     font-size: $text-size
     font-weight: 400
     color: $text
     background: none
+    line-height: 1.5
 
 i
     background: none
+
+.divider
+    background-color: $lightOutline-color
+    height: 1px
+    width: 100%

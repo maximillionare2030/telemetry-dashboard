@@ -1,6 +1,9 @@
 from influxdb import InfluxDBClient
 import pandas as pd
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class InfluxDBHandler:
     def __init__(self, host='localhost', port=8086, database='telemetry'):
@@ -31,24 +34,21 @@ class InfluxDBHandler:
     def get_measurements(self):
         """Returns a list of measurements in the database."""
         try:
-            # Make sure we're using the right database
-            self.client.switch_database(self.database)
-            result = self.client.query('SHOW MEASUREMENTS')
-            measurements = list(result.get_points())
-            if not measurements:
-                return []
+            measurements = self.client.get_list_measurements()
             return [m['name'] for m in measurements]
         except Exception as e:
-            print(f"Error retrieving measurements: {e}")
+            logger.error(f"Error getting measurements: {str(e)}")
             return []
 
     def get_fields(self, measurement):
-        """Returns fields for a specific measurement."""
+        """Returns a list of field names for a given measurement."""
         try:
-            result = self.client.query(f'SHOW FIELD KEYS FROM "{measurement}"')
-            return [field['fieldKey'] for field in result.get_points()]
+            query = f"SHOW FIELD KEYS FROM {measurement}"
+            result = self.client.query(query)
+            fields = list(result.get_points())
+            return [field['fieldKey'] for field in fields]
         except Exception as e:
-            print(f"Error retrieving fields for {measurement}: {e}")
+            logger.error(f"Error getting fields for {measurement}: {str(e)}")
             return []
 
     def get_points(self, measurement):
@@ -87,6 +87,13 @@ class InfluxDBHandler:
         except Exception as e:
             print(f"Error converting CSV to InfluxDB: {e}")
             return False
+
+    def query(self, query_string):
+        try:
+            return self.client.query(query_string)
+        except Exception as e:
+            logger.error(f"Query error: {str(e)}")
+            return None
 
 
 

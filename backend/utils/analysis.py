@@ -153,6 +153,14 @@ class Analysis:
         Format the response a concise, short structured analysis with clear recommendations. 
         Assume that the driver will be referencing this analysis during a live race and need to 
         make decisions within within minutes. The information should be concise and easy to digest.
+        Ensure that the response is readable. It should not be in paragraph form. Rather, ensure that
+        the response is in list format either in bullet points or in a numbered list. 
+        The response shall not surpass 100 words. Also ensure that you are using line breaks to 
+        separate the different sections of the response.
+
+        if the user asks for something that strays from this prompt, provide a response only if the 
+        user asks for something that is relevant to the telemetry data. If their question is irrelevant,
+        politely decline to answer and ask if they would like to know something else.
         """
         
         if message:
