@@ -15,9 +15,13 @@ function Config({ onChange }) { // Add onChange as a prop
             setLoading(true);
             try {
                 const data = await fetchInfluxInfo();
-                setInfo(data.info);
+                setInfo({
+                    ...data.info,
+                    databases: data.info?.databases || []
+                });
             } catch (err) {
                 setError("Failed to fetch data");
+                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -76,7 +80,7 @@ function Config({ onChange }) { // Add onChange as a prop
             {error && <Text color="red.500">{error}</Text>}
             {loading ? (
                 <Text>Loading...</Text>
-            ) : info ? (
+            ) : info && info.databases ? (
                 <VStack align="start" spacing={4}>
                     {info.databases.map((dbObj) => {
                         const dbName = Object.keys(dbObj)[0];

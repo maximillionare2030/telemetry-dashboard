@@ -7,13 +7,18 @@ import pandas as pd
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from client.influxv1 import InfluxDBHandler
+from fastapi import HTTPException
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Analysis:
     """ 
     Analyze telemetry data based on Formula SAE Guidelines
     """
 
-    def __init__(self, pdf_directory=None):
+    def __init__(self):
         """ 
         Initialize elements to use for analysis
         """
@@ -22,31 +27,15 @@ class Analysis:
         
         if not api_key:
             raise ValueError("OpenAI API key not found in environment variables")
-            
-        # Use absolute path for PDF directory
-        if pdf_directory is None:
-            pdf_directory = os.path.abspath(os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
-                'data',
-                'training'
-            ))
         
-        self.pdf_directory = pdf_directory
-        # raise error if pdf directory does not exist
-        if not os.path.exists(self.pdf_directory):
-            os.makedirs(self.pdf_directory)
-            raise ValueError(f"Created PDF directory at {self.pdf_directory}. Please add PDF files before analyzing.")
-            
-        # Verify PDF files exist
-        pdf_files = [f for f in os.listdir(self.pdf_directory) if f.endswith('.pdf')]
+        self.llm = OpenAI(temperature=0)
+        self.pdf_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'training')
         
-        # raise error if no pdf files are found
-        if not pdf_files:
-            raise ValueError(f"No PDF files found in {self.pdf_directory}. Directory exists but is empty.")
-        
-        self.llm = OpenAI(
-            temperature=0,
-            openai_api_key=api_key
+        # initialize influxdb client
+        self.influx = InfluxDBHandler(
+            host='localhost',
+            port=8086,
+            database='telemetry'
         )
         
         self.knowledge_base = self._create_knowledge_base()
@@ -161,3 +150,58 @@ class Analysis:
                 summary += f"  Latest Value: {df[metric].iloc[-1]}\n\n"
         
         return summary
+
+    async def analyze_data(self, message: str):
+        try:
+            # Get measurements and their data points
+            measurements = self.influx.get_measurements()
+            if not measurements:
+                return "No measurements found in the database. Please upload data first."
+            
+            # Collect data points from all measurements
+            all_data = {}
+            for measurement in measurements:
+                points = self.influx.get_points(measurement)
+                if points:
+                    all_data[measurement] = points
+            
+            if not all_data:
+                return "No data points found in measurements."
+            
+            # Format data for analysis
+            data_summary = "\n".join([
+                f"{measurement}: {len(points)} points" 
+                for measurement, points in all_data.items()
+            ])
+            
+            prompt = f"""
+            Analyzing telemetry data:
+            {data_summary}
+            
+            User question: {message}
+            
+            Please analyze this Formula SAE telemetry data and provide insights about:
+            1. Key metrics and their values
+            2. Any anomalies or concerns
+            3. Recommendations based on the data
+            """
+            
+            # Get response from GPT
+            response = await self._get_gpt_response(prompt)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Analysis error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def _get_gpt_response(self, prompt: str) -> str:
+        try:
+            qa_chain = RetrievalQA.from_chain_type(
+                llm=self.llm,
+                chain_type="stuff",
+                retriever=self.knowledge_base.as_retriever()
+            )
+            return qa_chain.run(prompt)
+        except Exception as e:
+            logger.error(f"GPT response error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))

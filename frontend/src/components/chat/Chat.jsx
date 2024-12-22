@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import Subheader from '../Subheader';
+import { analyzeData } from '../../api/api';
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
@@ -34,16 +34,11 @@ const Chat = () => {
 
         // send user message to the backend
         try {
-            // create response object to send input to backend
-            const response = await axios.post('/api/analysis/analyze', {
-                message: input,
-                telemetry: window.telemetryData // assume data is stored globally
-            });
-
-            // add ai response
-            const aiMessage = { role: 'assistant', content: response.data.analysis };
-            // copy response and add to the ai messages array
+            // analyze user message in the backend
+            const data = await analyzeData(input);
+            const aiMessage = { role: 'assistant', content: data.analysis };
             setMessages(prev => [...prev, aiMessage]);
+            console.log("response after data analysis: ", data.analysis);
         } catch (error) {
             console.error('Error: ', error);
             setMessages(prev => [...prev, {
@@ -66,7 +61,6 @@ const Chat = () => {
                         <div className={`message--${message.role}`}>
                             {message.content}
                         </div>
-
                     </div>
                 ))}
 

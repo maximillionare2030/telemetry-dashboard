@@ -127,7 +127,7 @@ function LineChart({ selectedConfig }) {
       ) : (
         <Line ref={chartRef} data={{ datasets: data }} options={options} />
       )}
-      <button onClick={() => chartRef.current.resetZoom()} style={{ marginLeft: 'auto' }}>Reset Zoom</button>
+      {/* <button onClick={() => chartRef.current.resetZoom()} style={{ marginLeft: 'auto' }}>Reset Zoom</button> */}
     </div>
   );
 }

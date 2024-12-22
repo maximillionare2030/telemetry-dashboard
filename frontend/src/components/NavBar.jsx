@@ -5,7 +5,7 @@ const navItems = [
   { name: "Home", icon: "fa-solid fa-house" },
   { name: "Log", icon: "fa-solid fa-file-lines" },
 ]
-const Navbar = () => {
+const NavBar = () => {
   return (
     <nav className="navbar">
       {navItems.map((item) => (
@@ -27,4 +27,4 @@ const Navbar = () => {
   )
 }
 
-export default Navbar;
+export default NavBar;

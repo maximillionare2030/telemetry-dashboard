@@ -16,7 +16,7 @@ import Collapsible from "../components/chat/Collapsible";
 import DataUploader from "../components/chat/DataUploader";
 import Chat from "../components/chat/Chat";
 import Header from "../components/Header";
-import Navbar from "../components/Navbar";
+import NavBar from "../components/NavBar";
 
 function Home() {
   const { extension } = useParams();
@@ -34,7 +34,7 @@ function Home() {
   return (
     <Flex width="100%" height="100vh">
       {/* navbar  */}
-      <Navbar />
+      <NavBar />
       
       {/* Main content wrapper */}
       <Flex 
@@ -55,7 +55,8 @@ function Home() {
                   flexDirection: "column",
                   height: "100%",
                   width: "100%",
-                  gap: "12px",
+                  gap: "4px",
+                  backgroundColor: "#232325"
                 }}
               >
                 <DataUploader />

@@ -1,153 +1,92 @@
 from influxdb import InfluxDBClient
 import pandas as pd
+from pathlib import Path
 
 class InfluxDBHandler:
-    def __init__(self, host, port, username, password):
-        # Initialize the InfluxDB client
-        self.client = InfluxDBClient(host=host, port=port, username=username, password=password)
-        
-        # Verify connection and list databases
+    def __init__(self, host='localhost', port=8086, database='telemetry'):
+        self.host = host
+        self.port = port
+        self.database = database
+        self.client = InfluxDBClient(
+            host=self.host,
+            port=self.port,
+            database=self.database,
+            username='',
+            password='',
+            ssl=False,
+        )
         try:
-            databases = self.get_databases()
-            print(f"Successfully connected to InfluxDB. Available databases: {databases}")
-        except Exception as e:
-            print(f"Error connecting to InfluxDB: {e}")
-
-    def get_databases(self):
-        """Returns a list of available databases in InfluxDB."""
-        try:
-            return [db['name'] for db in self.client.get_list_database()]
-        except Exception as e:
-            print(f"Error retrieving databases: {e}")
-            return []
-        
-    def drop_database(self, database):
-        """Drops a specific database from InfluxDB."""
-        try:
-            self.client.drop_database(database)
-            print(f"Database '{database}' dropped successfully.")
-        except Exception as e:
-            print(f"Error dropping database '{database}': {e}")
-
-    def get_measurements(self, database):
-        """Returns a list of measurements in the specified database."""
-        try:
-            # Switch to the specified database
-            self.client.switch_database(database)
-            measurements = self.client.query('SHOW MEASUREMENTS')
-            print("Successfully retrieved measurements")
-            return [m['name'] for m in measurements.get_points()]
-        except Exception as e:
-            print(f"Error retrieving measurements from '{database}': {e}")
-            return []
-        
-    def get_fields(self, database, measurement_name):
-        """Returns a list of field keys in the specified measurement of the given database."""
-        try:
-            # Switch to the specified database
-            self.client.switch_database(database)
+            # Get list of databases first
+            databases = self.client.get_list_database()
+            if not any(db['name'] == self.database for db in databases):
+                self.client.create_database(self.database)
+                print(f"Created database: {self.database}")
             
-            # Query to get the fields of the measurement
-            query = f'SHOW FIELD KEYS FROM "{measurement_name}"'
-            result = self.client.query(query)
+            # Switch to the database
+            self.client.switch_database(self.database)
             
-            # Log successful retrieval of fields
-            print(f"Successfully retrieved fields from '{measurement_name}' in database '{database}'")
-            
-            # Return a list of field keys
-            return [field['fieldKey'] for field in result.get_points()]
-        
         except Exception as e:
-            print(f"Error retrieving fields from measurement '{measurement_name}' in database '{database}': {e}")
-            return []
+            print(f"Error initializing database: {e}")
 
-
-    def get_points(self, database, measurement_name):
-        """Retrieves all points from a specified measurement in the given database."""
+    def get_measurements(self):
+        """Returns a list of measurements in the database."""
         try:
-            # Ensure the client is switched to the target database
-            self.client.switch_database(database)
-
-            # Query all points from the specified measurement
-            query = f'SELECT * FROM "{measurement_name}"'
-            result = self.client.query(query)
-            points = list(result.get_points())
-
-            if not points:
-                print(f"No points found in measurement '{measurement_name}'")
+            # Make sure we're using the right database
+            self.client.switch_database(self.database)
+            result = self.client.query('SHOW MEASUREMENTS')
+            measurements = list(result.get_points())
+            if not measurements:
                 return []
-
-            print(f"Retrieved {len(points)} points from measurement '{measurement_name}':")
-            for point in points:
-                print(point)
-
-            return points  # Optionally return the points for further processing
-
+            return [m['name'] for m in measurements]
         except Exception as e:
-            print(f"Error retrieving points from measurement '{measurement_name}': {e}")
+            print(f"Error retrieving measurements: {e}")
             return []
 
-    def ensure_database(self, database):
-        """Ensures that the specified database exists; creates it if it doesn't."""
-        
-        databases = self.get_databases()
-        
-        if database not in databases:
-            print(f"Database '{database}' does not exist. Creating it.")
-            self.client.create_database(database)
-        
-        self.client.switch_database(database)
-        print(f"Switched to database: {database}")
-
-    def csv_to_influx(self, filename, database):
-        """Imports CSV data to a specified measurement in the given database."""
+    def get_fields(self, measurement):
+        """Returns fields for a specific measurement."""
         try:
-            # Ensure the client is switched to the target database (create if not exists)
-            self.ensure_database(database)
-
-            # Read CSV and prepare JSON data for InfluxDB
-            df = pd.read_csv(filename)
-            measurement_name = filename.split("\\")[-1][:-4]  # Use filename for measurement name without .csv extension
-            print(f"Uploading data to measurement: {measurement_name}")
-            json_body = []
-            fields = df.columns[1:]  # Exclude timestamp column
-
-            for _, row in df.iterrows():
-                json_body.append({
-                    "measurement": measurement_name,
-                    "time": row.iloc[0],  # Timestamp should be in RFC3339 format
-                    "fields": {field: row[field] for field in fields}
-                })
-
-            # Write data to InfluxDB
-            self.client.write_points(json_body)
-            print("Data written successfully to InfluxDB.")
-
+            result = self.client.query(f'SHOW FIELD KEYS FROM "{measurement}"')
+            return [field['fieldKey'] for field in result.get_points()]
         except Exception as e:
-            print(f"Error processing file '{filename}': {e}")
+            print(f"Error retrieving fields for {measurement}: {e}")
+            return []
 
-    def influx_to_csv(self, measurement_name, output_filename, database):
-        """Exports data from a specified measurement in the given database to CSV."""
+    def get_points(self, measurement):
+        """Returns points from a specific measurement."""
         try:
-            # Ensure the client is switched to the target database
-            self.client.switch_database(database)
-
-            # Query data from the specified measurement
-            query = f'SELECT * FROM "{measurement_name}"'
+            self.client.switch_database(self.database)
+            query = f'SELECT * FROM "{measurement}" LIMIT 1000'
             result = self.client.query(query)
-            
-            # Convert query result to a DataFrame and export to CSV
-            points = list(result.get_points())
-            if not points:
-                print(f"No data found in measurement '{measurement_name}'")
-                return
-
-            df = pd.DataFrame(points)
-            df.to_csv(output_filename, index=False)
-            print(f"Data exported successfully to {output_filename}")
-
+            return list(result.get_points())
         except Exception as e:
-            print(f"Error exporting data from measurement '{measurement_name}': {e}")
+            print(f"Error retrieving points for {measurement}: {e}")
+            return []
+
+    def csv_to_influx(self, csv_file_path):
+        """Convert CSV file to InfluxDB points and write them."""
+        try:
+            df = pd.read_csv(csv_file_path)
+            measurement_name = Path(csv_file_path).stem
+            
+            # Prepare data in batches
+            batch_size = 1000
+            for i in range(0, len(df), batch_size):
+                batch_df = df.iloc[i:i+batch_size]
+                json_body = []
+                
+                for _, row in batch_df.iterrows():
+                    json_body.append({
+                        "measurement": measurement_name,
+                        "time": row.iloc[0],
+                        "fields": {field: row[field] for field in df.columns[1:]}
+                    })
+                
+                self.client.write_points(json_body)
+                
+            return True
+        except Exception as e:
+            print(f"Error converting CSV to InfluxDB: {e}")
+            return False
 
 
 
@@ -191,12 +130,12 @@ Each MEASUREMENT has
 |                          |
 |  +--------------------+  |
 |  | Retention Policies  |  |
-|  | Continuous Queries   |  |
+|  | Continuous Queries  | |
 |  +--------------------+  |
 |                          |
 |  +--------------------+  |
 |  | Shards & Shard     |  |
-|  | Groups              |  |
+|  | Groups              | |
 |  +--------------------+  |
 +--------------------------+
 

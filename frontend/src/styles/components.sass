@@ -42,7 +42,7 @@ button
 .collapsible
     transition: all 0.3s ease-in-out
     width: auto
-    height: 100vh
+    height: 100%
     align-items: flex-start
     display: flex
     flex-direction: column
@@ -55,22 +55,39 @@ button
         width: 400px
 
 select
+    display: flex
+    flex-direction: row
+    justify-content: space-between
+    align-items: center
     background-color: $card
     color: $text
-    padding: 8px 8px
-    outline: $outline
+    padding: 8px 12px
+    border: $outlineCard
     font-weight: 400
     cursor: pointer
     font-size: $text-size
+    width: 100%
+
+    &:hover
+        background-color: $card-hover
+    
+    option
+        background-color: $card
+        color: $text
+        padding: 8px 12px
+        border: $outlineCard
+        font-weight: 400
+        cursor: pointer
+        font-size: $text-size
 
 // form
-form input
+form input, input
     display: flex
     flex-direction: row
     justify-content: space-between
     background-color: $card
     padding: 8px 8px
-    border: $outline
+    border: $outlineCard
     outline: none
     width: 100%
     style: none
@@ -78,13 +95,14 @@ form input
         background-color: $card-hover
         cursor: pointer
     &:focus
-        outline: 1px solid white
+        border: 1px solid white
     
 .message
     display: flex
     flex-wrap: wrap
     font-size: $text-size
     color: $text
+    padding: 12px
     // message variants
     &--user
         @include title
