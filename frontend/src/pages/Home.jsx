@@ -1,7 +1,7 @@
 // Home.jsx
 import React, { useState } from "react";
-import { 
-  Flex, 
+import {
+  Flex,
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -9,14 +9,18 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 import LineChart from "../components/Chart";
 import Config from "../components/Config";
-import DataUploader from "../components/DataUploader";
-import Collapsable from "../components/chat/Collapsable";
+import Collapsible from "../components/chat/Collapsible";
+import DataUploader from "../components/chat/DataUploader";
+import Chat from "../components/chat/Chat";
+
 function Home() {
   const { extension } = useParams();
-  const component = extension ? extension.charAt(0).toUpperCase() + extension.slice(1) : '';
+  const component = extension
+    ? extension.charAt(0).toUpperCase() + extension.slice(1)
+    : "";
   const margin = "1.0rem";
 
   const [selectedConfig, setSelectedConfig] = useState(null); // State for selected config values
@@ -27,9 +31,9 @@ function Home() {
 
   return (
     <Flex
-      direction="column" 
-      width="100%" 
-      height="100vh" 
+      direction="column"
+      width="100%"
+      height="100vh"
       bg="white"
       margin="0"
       padding="0"
@@ -44,46 +48,65 @@ function Home() {
         border="1px solid grey"
       >
         <Breadcrumb separator="/" fontSize="1.25rem">
-          {['Power', 'Motor', 'Microcontroller'].map((item) => (
+          {["Power", "Motor", "Microcontroller"].map((item) => (
             <BreadcrumbItem key={item}>
-              <BreadcrumbLink href={`/${item.toLowerCase()}`} aria-label={`Navigate to ${item}`}>
+              <BreadcrumbLink
+                href={`/${item.toLowerCase()}`}
+                aria-label={`Navigate to ${item}`}
+              >
                 {item}
               </BreadcrumbLink>
             </BreadcrumbItem>
           ))}
         </Breadcrumb>
       </Flex>
-      {/* collapsable */}
-      <Collapsable title="Chat" />
-
-      {/* Main Content Area */}
-      <DataUploader />
-
-      <Flex
-        direction="column" 
-        flex="1" 
-        border="1px solid grey" 
-        padding={margin}
-      >
-        {/* Title */}
-        <Text fontSize="1.25rem" margin={margin}>
-          {component} Management
-        </Text>
-
-          {/* Config Component */}
-        <Config onChange={handleConfigSelectionChange} /> {/* Pass handler to Config */}
-
-        {/* Graphing */}
-        <Center
-          border="1px solid grey"
-          padding="0.5rem"
-          width="auto"
+      {/* Main content */}
+      <Flex className="row">
+        {/* collapsable */}
+        <Collapsible
+          title="Chat with your data"
+          children={
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                width: '100%',
+                gap: '12px'
+              }}
+            >
+              <DataUploader />
+              <Chat />
+            </div>
+          }
+        />
+        {/* Data */}
+        <Flex
+          direction="column"
           flex="1"
-          margin={margin}
-          maxHeight="100.0rem"
+          border="1px solid grey"
+          padding={margin}
         >
-          <LineChart selectedConfig={selectedConfig} /> {/* Pass selectedConfig to LineChart */}
-        </Center>
+          {/* Title */}
+          <Text fontSize="1.25rem" margin={margin}>
+            {component} Management
+          </Text>
+          {/* Config Component */}
+          <Config onChange={handleConfigSelectionChange} />{" "}
+          {/* Pass handler to Config */}
+          {/* Graphing */}
+          <Center
+            border="1px solid grey"
+            padding="0.5rem"
+            width="auto"
+            flex="1"
+            margin={margin}
+            maxHeight="100.0rem"
+          >
+            <LineChart selectedConfig={selectedConfig} />{" "}
+            {/* Pass selectedConfig to LineChart */}
+          </Center>
+        </Flex>
       </Flex>
     </Flex>
   );

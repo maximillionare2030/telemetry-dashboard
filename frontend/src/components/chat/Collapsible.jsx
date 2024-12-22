@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Header from "../Header";
 
-const Collapsable = ({title, children}) => {
+const Collapsible = ({title, children}) => {
     /**
      * 
-     * @param {string} title - The subtitle of the collapsable
+     * @param {string} title - The subtitle of the collapsible
      * @param {JSX.Elemeent} children - element stored inside of collapsible
-     * @param {boolean} isOpen - Whether the collapsable is open or not
+     * @param {boolean} isOpen - Whether the collapsible is open or not
      */
     const [isOpen, setIsOpen] = useState(false);
 
@@ -14,30 +14,29 @@ const Collapsable = ({title, children}) => {
     const handleToggle = () => {
         if(isOpen) {
             setIsOpen(false);
-            console.log("Collapsable is now closed");
+            console.log("collapsible is now closed");
         } else if(!isOpen) {
             setIsOpen(true);
-            console.log("Collapsable is now open");
+            console.log("collapsible is now open");
         }
     };
 
     return (
-        <div>
+        <div 
+            className={`collapsible ${isOpen ? 'open' : 'closed'}`}
+        >
             <Header 
                 title={title} 
-                isCollapsable={true} 
+                isCollapsible={true} 
                 onToggle={handleToggle}
             />
-            {isOpen &&
-            (
-                <div className="collapsable-content">
+            {isOpen && (
+                <div className="collapsible-content">
                     {children}
-                    hello
-                </div>
-                
+                </div>            
             )}  
         </div>
     )
 }
 
-export default Collapsable;
+export default Collapsible;

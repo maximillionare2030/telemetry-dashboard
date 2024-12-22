@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import Header from '../Header';
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
@@ -56,19 +57,13 @@ const Chat = () => {
     };
 
     return(
-        <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-white rounded-sm shadow">
+        <div className="container">
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-
+                <Header title="Chat" isCollapsible={false}/>
                 {/* map message roles to ui */}
                 {messages.map((message, index) => (
-                    <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-md p-2 ${
-                            message.role === 'user'
-                                ? 'bg-blue-500 text-white'
-                                : message.role === 'error'
-                                    ? 'bg-red-500 text-white'
-                                    : 'bg-gray-200 text-gray-800'
-                        }`}>
+                    <div key={index}>
+                        <div className={`message--${message.role}`}>
                             {message.content}
                         </div>
 
@@ -90,7 +85,7 @@ const Chat = () => {
 
             {/* handle input */}
             <form onSubmit={handleSubmit} className="border-t p-4">
-                <div className="flex space-x-4">
+                <div className="row">
                     <input 
                     type="text"
                     value={input}

@@ -1,4 +1,5 @@
 @import './_variables.sass'
+@import './global.sass'
 
 button
     background-color: $primaryAccent
@@ -8,9 +9,42 @@ button
     border: none
     font-weight: 600
     cursor: pointer
+    width: fit-content
 
-form
+    &.collapsible-button
+        display: flex
+        justify-content: center
+        align-items: center
+        cursor: pointer
+        background-color: $background
+        height: 24px
+        width: 24px
+        border-left: $outlineLight
+        color: $heading
+        :hover
+            background-color: $card-hover
+
+.collapsible-content
+    width: 100%
+    height: 100%
     display: flex
+    flex-direction: column
+    gap: 12px
+    overflow-y: auto
+
+.collapsible
+    transition: all 0.3s ease-in-out
+    width: auto
+    min-height: fit-content
+    display: flex
+    flex-direction: column
+    border-right: $outlineLight
+    overflow: hidden
+    position: sticky
+    top: 0
+    
+    &.open
+        width: 400px
 
 select
     background-color: $card
@@ -21,14 +55,58 @@ select
     cursor: pointer
     font-size: $text-size
 
-.collapsable-button
+// form
+form input
     display: flex
-    justify-content: center
-    align-items: center
-    cursor: pointer
+    flex-direction: row
+    justify-content: space-between
     background-color: $card
     padding: 8px 8px
     border: $outline
-    color: $heading
-    :hover
+    outline: none
+    width: 100%
+    style: none
+    &:hover
         background-color: $card-hover
+        cursor: pointer
+    &:focus
+        outline: 1px solid white
+    
+.message
+    display: flex
+    flex-wrap: wrap
+    font-size: $text-size
+    color: $text
+    // message variants
+    &--user
+        @include title
+    &--assistant
+        color: $text
+        text-size: $text-size
+    &--error
+        color: $error
+        text-size: $text-size
+
+.file-input
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    width: 100%
+    height: 100%
+    border: 2px dashed $outline-color
+    background-color: $card
+    padding: 22px
+    cursor: pointer
+    &:hover
+        background-color: $card-hover
+    i
+        font-size: 24px
+        color: $heading
+        margin-bottom: 12px
+    p
+        @include subheading
+    &::file-selector-button
+        display: none
+    input[type="file"]
+        display: none

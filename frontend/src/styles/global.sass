@@ -17,3 +17,50 @@
     font-family: $font-family
     color: $text
     background-color: $background
+    margin: 0  
+    padding: 0
+    -webkit-tap-highlight-color: transparent 
+    cursor: default 
+    outline: none 
+    scrollbar-width: none 
+    box-sizing: border-box 
+    vertical-align: middle 
+    font-weight: normal 
+    text-rendering: optimizeLegibility 
+    -webkit-font-smoothing: antialiased 
+    -moz-osx-font-smoothing: grayscale 
+    line-height: 1 
+
+body, html
+    margin: 0
+    padding: 0
+    background-color: none
+
+[class*="container"], 
+[class*="wrapper"],
+[class*="content"],
+.header,
+.collapsible,
+.App
+    background: none
+
+// font styling
+
+@mixin title
+    font-size: $title-size
+    font-weight: 600
+    color: $heading
+
+@mixin subheading
+    font-size: $subheading-size
+    font-weight: 400
+    color: $heading
+
+p
+    font-size: $text-size
+    font-weight: 400
+    color: $text
+    background: none
+
+i
+    background: none

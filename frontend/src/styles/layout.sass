@@ -1,10 +1,31 @@
 @import "./_variables.sass"
+@import "./global.sass"
 
 .header
     display: flex
     justify-content: space-between
+    width: 100%
     align-items: center
     background-color: $background
     padding: 8px 16px
     font-size: $text-size
     border-bottom: $outlineLight
+    @include subheading
+
+.container
+    display: flex
+    flex-direction: column
+    background-color: $background
+    height: 100%
+    width: 100%
+    padding: 12px
+    gap: 12px
+    overflow: auto
+    @include subheading
+
+.row
+    display: flex
+    flex-direction: row
+    justify-content: space-between
+    gap: 8px
+    height: 100%
