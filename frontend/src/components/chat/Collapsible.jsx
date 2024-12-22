@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "../Header";
+import Subheader from "../Subheader";
 
 const Collapsible = ({title, children}) => {
     /**
@@ -8,7 +8,7 @@ const Collapsible = ({title, children}) => {
      * @param {JSX.Elemeent} children - element stored inside of collapsible
      * @param {boolean} isOpen - Whether the collapsible is open or not
      */
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     // handle click of collapse button
     const handleToggle = () => {
@@ -25,7 +25,7 @@ const Collapsible = ({title, children}) => {
         <div 
             className={`collapsible ${isOpen ? 'open' : 'closed'}`}
         >
-            <Header 
+            <Subheader 
                 title={title} 
                 isCollapsible={true} 
                 onToggle={handleToggle}

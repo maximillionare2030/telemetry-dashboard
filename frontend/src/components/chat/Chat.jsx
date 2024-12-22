@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import Header from '../Header';
+import Subheader from '../Subheader';
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
@@ -59,7 +59,7 @@ const Chat = () => {
     return(
         <div className="container chat">
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                <Header title="Chat" isCollapsible={false}/>
+                <Subheader title="Chat" isCollapsible={false}/>
                 {/* map message roles to ui */}
                 {messages.map((message, index) => (
                     <div key={index}>

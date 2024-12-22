@@ -1,5 +1,6 @@
 @import './_variables.sass'
 @import './global.sass'
+@import './animations.sass'
 
 button
     background-color: $primaryAccent
@@ -16,13 +17,19 @@ button
         justify-content: center
         align-items: center
         cursor: pointer
+        height: 100%
+        aspect-ratio: 1
+        padding: 0
         background-color: $background
-        height: 24px
-        width: 24px
-        border-left: $outlineLight
         color: $heading
-        :hover
+        border-left: $outlineLight
+        &:hover
             background-color: $card-hover
+        i
+            font-size: 16px
+            color: $heading
+            font-weight: 600
+            cursor: pointer
 
 .collapsible-content
     width: 100%
@@ -94,10 +101,11 @@ form input
     align-items: center
     justify-content: center
     width: 100%
-    height: 100%
-    border: 2px dashed $outline-color
+    height: auto
+    border: 2px dashed $lightOutline-color
     background-color: $card
-    padding: 22px
+    padding: 32px 0
+    @include transition
     cursor: pointer
     &:hover
         background-color: $card-hover
@@ -114,40 +122,86 @@ form input
 
 // navbar
 nav
-    display: flex
-    flex-direction: row
-    justify-content: flex-start
-    align-items: center
-    width: 100%
-    height: 48px
-    padding: 12px
-    background-color: $background
-    border-bottom: $outlineLight
-    gap: 24px
+    // navbar
+    &.navbar
+        position: fixed
+        left: 0
+        top: 0
+        width: fit-content
+        height: 100vh
+        display: flex
+        flex-direction: column
+        justify-content: flex-start
+        align-items: center
+        padding: 12px
+        background-color: $background
+        border-right: $outlineLight
+        gap: 12px
+        z-index: 100
+        .nav-item
+            width: 100%
+            display: flex
+            flex-direction: column
+            align-items: flex-start
+            justify-content: flex-start
+            gap: 8px
+            .nav-link
+                display: flex
+                flex-direction: row
+                align-items: flex-start
+                justify-content: flex-start
+                gap: 8px
+                text-decoration: none
+                color: $text
+                font-weight: 500
+                font-size: $text-size
+                background-color: $background
+                border-radius: 2px
+                width: 100%
+                padding: 8px 12px
+                &:hover
+                    color: $heading
+                    background-color: $card-hover
+                    cursor: pointer
+                &.active
+                    background-color: $card
 
-    .nav-item
-        position: relative
-        
-        .nav-link
-            padding: 8px 0
-            text-decoration: none
-            font-weight: 500
-            color: $text
-            transition: color 0.3s ease
+    // header
+    &.header
+        display: flex
+        flex-direction: row
+        justify-content: flex-start
+        align-items: center
+        width: 100%
+        height: 48px
+        padding: 12px
+        background-color: $background
+        border-bottom: $outlineLight
+        gap: 24px
+
+        .header-item
+            position: relative
             
-            &::after
-                content: ''
-                position: absolute
-                bottom: -2px
-                left: 0
-                width: 0
-                height: 2px
-                background-color: $primaryAccent
-                transition: width 0.3s ease
-            
-            &:hover, &.active
-                color: $heading
-                cursor: pointer
+            .header-link
+                padding: 8px 0
+                text-decoration: none
+                font-weight: 500
+                color: $text
+                transition: color 0.3s ease
                 
                 &::after
-                    width: 100%
+                    content: ''
+                    position: absolute
+                    bottom: -2px
+                    left: 0
+                    width: 0
+                    height: 2px
+                    background-color: $primaryAccent
+                    transition: width 0.3s ease
+                
+                &:hover, &.active
+                    color: $heading
+                    cursor: pointer
+                    
+                    &::after
+                        width: 100%

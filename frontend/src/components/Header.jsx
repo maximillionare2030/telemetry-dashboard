@@ -1,36 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 
-
-const Header = ({ title, isCollapsible, onToggle }) => {
-  /**
-   * @param {str} title - title of header component
-   * @param {bool} iscollapsible - wether the header contains a collapsible button
-   * @param {bool} onToggle - when the collapse button is clicked
-   */
-
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
+const Header = () => {
   return (
-    <div className="header">
-      <div className="subheading">{title}</div>
-      {!isCollapsible ? null : (
-        <>
-          <button 
-            onClick={() => {
-              setIsCollapsed(!isCollapsed);
-              onToggle();
-            }} 
-            className="collapsible-button"
+    <nav className="header">
+      {["Overview", "Power", "Motor", "Microcontroller"].map((item) => (
+        <div
+          key={item}
+          className="header-item"
+        >
+          <a
+            href={`/${item.toLowerCase()}`}
+            aria-label={`Navigate to ${item}`}
+            className="header-link"
           >
-            {isCollapsed ? (
-              <i class="fa-solid fa-chevron-left"></i>
-            ) : (
-              <i class="fa-solid fa-chevron-right"></i>
-            )}
-          </button>
-        </>
-      )}
-    </div>
+            {item}
+          </a>
+        </div>
+      ))}
+    </nav>
   );
 };
 

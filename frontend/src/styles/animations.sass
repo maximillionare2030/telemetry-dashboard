@@ -1,17 +1,23 @@
+@mixin transition
+    transition: all 0.3s ease-in-out
+
+// collapsible
 @keyframes slideIn
+    // to open
     from
-        width: 50px
+        width: 280px //! need to fix this to be dynamic
         opacity: 0.5
     to
         width: 400px
         opacity: 1
 
 @keyframes slideOut
+    // to close
     from
         width: 400px
         opacity: 1
     to
-        width: 50px
+        width: 280px
         opacity: 0.5
 
 .collapsible

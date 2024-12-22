@@ -1,24 +1,30 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-const NavBar = () => {
+const navItems = [
+  { name: "Home", icon: "fa-solid fa-house" },
+  { name: "Log", icon: "fa-solid fa-file-lines" },
+]
+const Navbar = () => {
   return (
-    <nav>
-      {["Overview", "Power", "Motor", "Microcontroller"].map((item) => (
+    <nav className="navbar">
+      {navItems.map((item) => (
         <div
-          key={item}
+          key={item.name}
           className="nav-item"
         >
-          <a
-            href={`/${item.toLowerCase()}`}
-            aria-label={`Navigate to ${item}`}
+          <Link 
+            to={`/${item.name.toLowerCase()}`}
             className="nav-link"
           >
-            {item}
-          </a>
+            <i className={item.icon}></i>
+            {item.name}
+          </Link>
+
         </div>
       ))}
     </nav>
-  );
-};
+  )
+}
 
-export default NavBar;
+export default Navbar;
