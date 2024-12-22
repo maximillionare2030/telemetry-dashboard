@@ -57,7 +57,7 @@ const Chat = () => {
     };
 
     return(
-        <div className="container">
+        <div className="container chat">
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 <Header title="Chat" isCollapsible={false}/>
                 {/* map message roles to ui */}

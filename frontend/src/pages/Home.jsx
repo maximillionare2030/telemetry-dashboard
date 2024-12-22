@@ -15,6 +15,7 @@ import Config from "../components/Config";
 import Collapsible from "../components/chat/Collapsible";
 import DataUploader from "../components/chat/DataUploader";
 import Chat from "../components/chat/Chat";
+import NavBar from "../components/NavBar";
 
 function Home() {
   const { extension } = useParams();
@@ -38,28 +39,8 @@ function Home() {
       margin="0"
       padding="0"
     >
-      {/* Breadcrumb navigation */}
-      <Flex
-        as="nav"
-        aria-label="breadcrumb"
-        align="center"
-        justify="space-between"
-        wrap="wrap"
-        border="1px solid grey"
-      >
-        <Breadcrumb separator="/" fontSize="1.25rem">
-          {["Power", "Motor", "Microcontroller"].map((item) => (
-            <BreadcrumbItem key={item}>
-              <BreadcrumbLink
-                href={`/${item.toLowerCase()}`}
-                aria-label={`Navigate to ${item}`}
-              >
-                {item}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          ))}
-        </Breadcrumb>
-      </Flex>
+      {/* navbar */}
+      <NavBar />
       {/* Main content */}
       <Flex className="row">
         {/* collapsable */}
@@ -84,11 +65,10 @@ function Home() {
         <Flex
           direction="column"
           flex="1"
-          border="1px solid grey"
           padding={margin}
         >
           {/* Title */}
-          <Text fontSize="1.25rem" margin={margin}>
+          <Text fontSize="1.25rem">
             {component} Management
           </Text>
           {/* Config Component */}
@@ -97,10 +77,8 @@ function Home() {
           {/* Graphing */}
           <Center
             border="1px solid grey"
-            padding="0.5rem"
             width="auto"
             flex="1"
-            margin={margin}
             maxHeight="100.0rem"
           >
             <LineChart selectedConfig={selectedConfig} />{" "}
