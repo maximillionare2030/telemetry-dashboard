@@ -18,6 +18,7 @@ import Chat from "../components/chat/Chat";
 import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import Databox from "../components/stats/Databox";
+import Timeseries from "../components/stats/Timeseries";
 
 function Home() {
   const { extension } = useParams();
@@ -72,19 +73,10 @@ function Home() {
             <div className="title" >{component} Management</div>
             {/* Statistics overview */}
             <Databox />
-            {/* Config Component */}
-            <Config onChange={handleConfigSelectionChange} />{" "}
-            {/* Pass handler to Config */}
-            {/* Graphing */}
-            <Center
-              border="1px solid grey"
-              width="auto"
-              flex="1"
-              maxHeight="100.0rem"
-            >
-              <LineChart selectedConfig={selectedConfig} />{" "}
-              {/* Pass selectedConfig to LineChart */}
-            </Center>
+            {/* time series */}
+            <Timeseries 
+              selectedConfig={selectedConfig}
+            />
           </Flex>
         </Flex>
       </Flex>

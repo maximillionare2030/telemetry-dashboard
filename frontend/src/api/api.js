@@ -108,3 +108,60 @@ export const fetchMeanData = async () => {
         throw error;
     }
 };
+
+export const fetchTimeRange = async () => {
+    /**
+     * @api to fetch time range from influxdb for time series visualization
+     */
+    const response = await fetch('http://localhost:8000/api/influx/get/timerange');
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+};
+
+export const fetchTimeSeriesData = async (measurement, fields, from, to) => {
+    /**
+     * @api to fetch config data for time series visualization
+     */
+    const response = await fetch('http://localhost:8000/api/influx/get/timeseries', {
+        method: 'POST',
+        headers: {
+           'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          measurement,
+          fields,
+          from,
+          to,
+        }),
+      });
+    
+      if (!response.ok) {
+        throw new Error('Failed to fetch time series data');
+      }
+      return response.json();
+    };
+
+
+export const extractSelectedConfig = (config) => {
+    if (!config || !config.databases) return {};
+    
+    for (const db in config.databases) {
+        const database = config.databases[db];
+        if (database.isSelected && database.measurements) {
+            for (const meas in database.measurements) {
+                const measurement = database.measurements[meas];
+                if (measurement.isSelected && measurement.fields) {
+                    const selectedFields = Object.keys(measurement.fields).filter(
+                        (field) => measurement.fields[field].isSelected
+                    );
+                    if (selectedFields.length > 0) {
+                        return { measurement: meas, fields: selectedFields };
+                    }
+                }
+            }
+        }
+    }
+    return {};
+};
