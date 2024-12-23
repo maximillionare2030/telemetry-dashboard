@@ -16,7 +16,6 @@
 * 
     font-family: $font-family
     color: $text
-    background-color: $background
     margin: 0  
     padding: 0
     -webkit-tap-highlight-color: transparent 
@@ -34,7 +33,7 @@
 body, html
     margin: 0
     padding: 0
-    background-color: none
+    background-color: $background
 
 [class*="container"], 
 [class*="wrapper"],
@@ -61,6 +60,14 @@ body, html
 
 .subheading
     @include subheading
+
+@mixin subtext
+    font-size: $subtext-size
+    font-weight: 500
+    color: $text
+
+.subtext
+    @include subtext
 
 p
     font-size: $text-size

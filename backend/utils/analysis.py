@@ -91,6 +91,7 @@ class Analysis:
     def _format_dataframe(self, df):
         summary = f"Telemetry data analysis from {df['date'].iloc[0]} {df['time'].iloc[0]} to {df['date'].iloc[-1]} {df['time'].iloc[-1]}\n\n"
         
+        # Add statistics for each telemetry metric
         metrics = ['motorSPD', 'motorTEMP', 'packVOLT', 'packTEMP', 'packCURR', 'packCCL']
         for metric in metrics:
             if metric in df.columns:
@@ -167,3 +168,31 @@ class Analysis:
             base_prompt += f"\nUser question: {message}"
             
         return base_prompt
+
+    def analyze_nominal_ranges(self, metrics_data):
+        """ 
+        Analyze if a metric is outside of a nominal range
+        Nominal ranges pulled from the FSAE handbook
+        """
+        nominal_ranges = {
+            'Motor speed': {'min': 1500, 'max': 8500},  # Updated based on operational tolerances for typical motors
+            'Motor temp': {'min': 10, 'max': 90},       # Reflecting enhanced thermal management requirements
+            'Pack voltage': {'min': 250, 'max': 600},   # Aligning with the maximum permissible voltage of 600 V DC :contentReference[oaicite:0]{index=0}
+            'Pack temp': {'min': 10, 'max': 60},        # Maximum accumulator cell temperature is capped at 60°C :contentReference[oaicite:1]{index=1}
+            'Pack current': {'min': -120, 'max': 250},  # Adjusted to accommodate peak currents during dynamic events
+            'Pack ccl': {'min': 0, 'max': 120}          # Charge current limits considering cell and safety constraints
+        }
+
+        analysis = {}
+
+        # analyze each metric inside of the metrics_data list
+        for metric, value in metrics_data.items():
+            if metric in nominal_ranges:
+                if value < nominal_ranges[metric]['min']:
+                    analysis[metric] = 'below' # tag with the status
+                elif value > nominal_ranges[metric]['max']:
+                    analysis[metric] = 'above' # tag with the status
+                else:
+                    analysis[metric] = 'nominal' # tag with the status
+
+        return analysis

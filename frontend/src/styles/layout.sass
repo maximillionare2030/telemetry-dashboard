@@ -65,6 +65,8 @@
         flex-direction: column
         gap: 8px
         height: 100%
+        position: relative
+        top: 0
     &.databox
         display: flex
         @include row
@@ -72,21 +74,28 @@
         height: fit-content
         width: -webkit-fill-available
         border: $outline
+        background-color: $card
+        padding: 8px
         .databox-item
             @include column
             align-content: flex-start
-            gap: 8px
-            padding: 8px
+            gap: 2px
+            padding: 12px
             border: $outline
+            background-color: $card
             .subheading
                 @include subheading
+                color: $text
             .number
-                @include title
+                font-size: 34px
+                font-weight: 400
+                color: $heading
+                
 
 .main-content-wrapper
     width: -webkit-fill-available
     height: 100vh
-    overflow-y: auto
+    overflow-y: scroll
     display: flex
     flex-direction: column
     margin-left: 112.266px

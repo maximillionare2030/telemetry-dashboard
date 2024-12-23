@@ -127,19 +127,21 @@ async def get_mean():
             
         # define key params to track
         key_metrics = {
-            'motorSPD': 'Motor Speed',
-            'motorTEMP': 'Motor Temperature',
-            'packVOLT': 'Pack Voltage',
-            'packTEMP': 'Pack Temperature',
-            'packCURR': 'Pack Current',
-            'packCCL': 'Pack CCL'
+            'motorSPD': 'Motor speed',
+            'motorTEMP': 'Motor temp',
+            'packVOLT': 'Pack voltage',
+            'packTEMP': 'Pack temp',
+            'packCURR': 'Pack current',
+            'packCCL': 'Pack ccl'
         }
 
+        # store the means of each metric
         means = {}
 
         #* only accessing the first measurement for now. In the future, allow user to select the measurment to analyze
         measurement = measurements[0]  # Get the first measurement
         
+        # get the mean of each metric
         for metric, display_name in key_metrics.items():
             try:
                 query = f'SELECT MEAN("{metric}") as mean FROM "{measurement}"'
@@ -158,7 +160,21 @@ async def get_mean():
                 continue
 
         logger.info(f"Final means: {means}")
-        return means
+
+        if means:
+            # Create analysis instance
+            analyzer = Analysis()
+            status_analysis = analyzer.analyze_nominal_ranges(means)
+            
+            # Combine means with their status
+            result = {
+                'means': means,
+                'status': status_analysis
+            }
+            
+            return result
+            
+        return {'means': {}, 'status': {}}
         
     except Exception as e:
         logger.error(f"Error in get_mean: {str(e)}")

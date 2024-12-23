@@ -8,14 +8,16 @@ const Databox = () => {
      */
     const [aggregates, setAggregates] = useState({});
     const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState({});
     const [error, setError] = useState(null);
 
-    // fetch data from the backend
+    // fetch mean and status from the backend
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetchMeanData();
-                setAggregates(data);
+                setAggregates(data.means);
+                setStatus(data.status);
             } catch (error) {
                 setError(error);
             } finally {
@@ -24,6 +26,17 @@ const Databox = () => {
         };
         fetchData();
     }, []);
+
+    // set the state based on the status
+    const getStatusComponent = (status) => {
+        if (status === 'below') {
+            return <div className="subtext" style={{color: '#FF5647'}}>BELOW NOMINAL</div>;
+        } else if (status === 'above') {
+            return <div className="subtext" style={{color: '#FF5647'}}>ABOVE NOMINAL</div>;
+        } else {
+            return <div className="subtext" style={{color: '#47FF85'}}>NOMINAL</div>;
+        }
+    }
 
     // states
     if (loading) return <div>Loading...</div>;
@@ -34,6 +47,9 @@ const Databox = () => {
             {/* map over aggregates and create a databox item for each */}
             {Object.entries(aggregates).map(([title, value]) => (
                 <div key={title} className="databox-item">
+                    <div>
+                        {getStatusComponent(status[title])}
+                    </div>
                     <div className="subheading">{title}</div>
                     <div className="number">
                         {typeof value === 'number' ? value.toFixed(2) : value}

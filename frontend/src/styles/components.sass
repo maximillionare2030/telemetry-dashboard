@@ -189,6 +189,7 @@ nav
                 font-size: $text-size
                 background-color: $background
                 border-radius: 2px
+                transition: all 0.3s ease-in-out
                 width: 100%
                 padding: 8px 12px
                 &:hover
@@ -197,6 +198,9 @@ nav
                     cursor: pointer
                 &.active
                     background-color: $card
+                    color: $heading
+                    i
+                        color: $primaryAccent
 
     // header
     &.header
