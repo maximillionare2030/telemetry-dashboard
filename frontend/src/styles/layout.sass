@@ -19,6 +19,11 @@
     gap: 8px
     height: 100%
     width: -webkit-fill-available
+    align-items: center
+    &.card-heading
+        i
+            font-size: 14px
+
 
 .row
     @include row
@@ -45,6 +50,8 @@
     @include subheading
     &.row
         gap: 0px
+    &.column
+        @include column
     &.chat
         overflow-y: scroll
         height: 100%
@@ -69,27 +76,31 @@
         top: 0
     &.databox
         display: flex
-        @include row
-        gap: 8px
+        @include column
+        gap: 12px
         height: fit-content
         width: -webkit-fill-available
         border: $outline
         background-color: $card
         padding: 8px
-        .databox-item
-            @include column
-            align-content: flex-start
-            gap: 2px
-            padding: 12px
-            border: $outline
-            background-color: $card
-            .subheading
-                @include subheading
-                color: $text
-            .number
-                font-size: 34px
-                font-weight: 400
-                color: $heading
+        .databox-items-wrapper
+            display: flex
+            flex-direction: row
+            gap: 12px
+            .databox-item
+                @include column
+                align-content: flex-start
+                gap: 2px
+                padding: 12px
+                border: $outline
+                background-color: $card
+                .subheading
+                    @include subheading
+                    color: $text
+                .number
+                    font-size: 34px
+                    font-weight: 400
+                    color: $heading
                 
 
 .main-content-wrapper

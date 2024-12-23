@@ -44,6 +44,11 @@ const Databox = () => {
 
     return (
         <div className="container databox">
+            <div className="row card-heading">
+                <i class="fa-solid fa-chart-line" style={{color: 'white'}}></i>
+                <div className="subtext">Average statistics</div>
+            </div>
+            <div className="databox-items-wrapper">
             {/* map over aggregates and create a databox item for each */}
             {Object.entries(aggregates).map(([title, value]) => (
                 <div key={title} className="databox-item">
@@ -56,6 +61,7 @@ const Databox = () => {
                     </div>
                 </div>
             ))}
+             </div>
         </div>
     );
 };
