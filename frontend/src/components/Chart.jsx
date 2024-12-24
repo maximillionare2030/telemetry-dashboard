@@ -4,6 +4,7 @@ import { Chart, registerables } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import 'chartjs-adapter-date-fns'; // Import the date adapter
 import { fetchPoints } from '../api/api';
+import Skeleton from '../components/Skeleton';
 
 Chart.register(...registerables, zoomPlugin);
 
@@ -123,7 +124,7 @@ function LineChart({ selectedConfig }) {
   return (
     <div style={{ width: '100%', height: '100%' }}>
       {loading ? (
-        <p>Loading...</p>
+        <Skeleton/>
       ) : (
         <Line ref={chartRef} data={{ datasets: data }} options={options} />
       )}

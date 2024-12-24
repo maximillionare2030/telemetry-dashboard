@@ -195,7 +195,7 @@ async def analyze_data(request: AnalysisRequest):
         if not result:
             raise HTTPException(status_code=404, detail="No analysis results found")
             
-        return {"analysis": result}
+        return result
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

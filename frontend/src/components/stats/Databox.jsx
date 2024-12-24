@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchMeanData } from '../../api/api';
-
+import Skeleton from '../Skeleton';
 const Databox = () => {
     /**
      * @param {string} title - the title of the databox item (ex: motor speed)
@@ -39,7 +39,7 @@ const Databox = () => {
     }
 
     // states
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <Skeleton/>;
     if (error) return <div>Error: {error.message}</div>;
 
     return (

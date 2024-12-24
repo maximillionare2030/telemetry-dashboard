@@ -11,6 +11,8 @@ button
     font-weight: 600
     cursor: pointer
     width: fit-content
+    i
+        color: $background
 
     &.collapsible-button
         display: flex
@@ -92,10 +94,11 @@ form input, input
     outline: none
     width: 100%
     style: none
+    height: 100%
     &:hover
-        background-color: $card-hover
         cursor: pointer
         color: $heading
+        border: 1px solid white
     &:focus
         border: 1px solid white
         color: $heading
@@ -113,18 +116,25 @@ form input, input
 
 .message
     display: flex
-    flex-wrap: wrap
+    flex-direction: column
     font-size: $text-size
     color: $text
-    padding: 12px
+    padding: 4px
+    width: 100%
     // message variants
-    &--user
+    &.user p
         @include title
-    &--assistant
-        color: $text
+        text-size: 28px
+        font-weight: 500
+    &.assistant p, &.assistant li
+        color: $heading
         text-size: $text-size
-    &--error
+        margin-left: 12px
+    &.error
         color: $error
+        text-size: $text-size
+    &.loading
+        color: $text
         text-size: $text-size
 
 .file-input

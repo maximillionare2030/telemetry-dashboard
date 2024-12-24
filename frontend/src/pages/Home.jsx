@@ -79,7 +79,9 @@ function Home() {
         <Header />
 
         {/* Main content */}
-        <Flex className="row">
+        <Flex className="row" style={{
+          height: '100%'
+        }}>
           {/* collapsable */}
           <Collapsible
             title="Chat with your data"

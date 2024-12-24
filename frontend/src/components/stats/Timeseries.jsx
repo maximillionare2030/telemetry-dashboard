@@ -3,18 +3,19 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 import { fetchTimeRange, fetchTimeSeriesData, extractSelectedConfig } from '../../api/api';
+import Skeleton from '../Skeleton';
 
 const getRandomColor = () => {
     const colors = [
         { 
             // purple
-            bg: 'linear-gradient(to bottom, rgba(70, 95, 255, 1), rgba(70, 95, 255, 0))', 
-            border: '#465FFF' 
+            backgroundColor: 'linear-gradient(to bottom, rgba(70, 95, 255, 1), rgba(70, 95, 255, 0))', 
+            borderColor: '#465FFF' 
         }, 
         {
             // blue
-            bg: `linear-gradient(to bottom, rgba(80, 219, 250, 1), rgba(80, 219, 250, 0))`,
-            border: '#50DBFA'
+            backgroundColor: `linear-gradient(to bottom, rgba(80, 219, 250, 1), rgba(80, 219, 250, 0))`,
+            borderColor: '#50DBFA'
         }
     ]
     return colors[Math.floor(Math.random() * colors.length)];
@@ -131,17 +132,17 @@ const Timeseries = ({ selectedConfig }) => {
             x: {
                 type: 'time',
                 time: {
-                    unit: 'auto',
+                    unit: 'second',
                     displayFormats: {
-                        millisecond: 'HH:mm:ss.SSS',
+                        // millisecond: 'HH:mm:ss.SSS',
                         second: 'HH:mm:ss',
-                        minute: 'HH:mm',
-                        hour: 'HH:mm',
-                        day: 'MMM D',
-                        week: 'MMM D',
-                        month: 'MMM YYYY',
-                        quarter: 'MMM YYYY',
-                        year: 'YYYY'
+                        // minute: 'HH:mm',
+                        // hour: 'HH:mm',
+                        // day: 'MMM D',
+                        // week: 'MMM D',
+                        // month: 'MMM YYYY',
+                        // quarter: 'MMM YYYY',
+                        // year: 'YYYY'
                     }
                 },
                 ticks: {
@@ -171,7 +172,9 @@ const Timeseries = ({ selectedConfig }) => {
     };
 
     if (!selectedConfig) return <div>No configuration selected</div>;
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <Skeleton/>
+    );
     if (error) return <div>Error: {error.message}</div>;
 
     return (

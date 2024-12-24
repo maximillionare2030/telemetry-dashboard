@@ -128,13 +128,47 @@ class Analysis:
             
             data_summary = self._format_data_for_analysis(all_data)
             prompt = self._create_analysis_prompt(data_summary, message)
-            
+
+            # Get relevant sources from knowledge base
+            # return top 3 most similar sources
+            sources = self.knowledge_base.similarity_search(prompt, k=3)
+
+            # format each document in sources
+            sources = [
+                {
+                    "title": os.path.basename(doc.metadata['source']), # assign filename to title
+                    "content": doc.page_content.strip(), # return chunk of content
+                    "page": doc.metadata['page'] # return page number
+
+                }
+                for doc in sources
+            ]
+
+            # run the analysis
             qa_chain = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
-                retriever=self.knowledge_base.as_retriever()
+                retriever=self.knowledge_base.as_retriever(),
+                return_source_documents=True 
             )
-            return qa_chain.run(prompt)
+            analysis = qa_chain.invoke(prompt)["result"]
+
+            # extract specific lines for sources
+            for index, source in enumerate(sources):
+                # find lines from the source used for analysis
+                source_lines = source['content'].split('\n')
+                # extract lines relevant to analysis
+                relevant_lines = [
+                    line.strip for line in source_lines
+                    if line.strip and (line.strip() in analysis)
+                ]
+                # add relevant lines to sources otherwise add the first line of the source
+                sources[index]['content'] = '\n'.join(relevant_lines) if relevant_lines else source_lines[0]
+
+            return {
+                "analysis": analysis,
+                "sources": sources
+            }
             
         except Exception as e:
             logger.error(f"Analysis error: {str(e)}")
