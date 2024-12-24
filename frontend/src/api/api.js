@@ -7,6 +7,8 @@ export const fetchInfluxInfo = async () => {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+
+        // return measurement and corresponding fields in json format
         return {
             info: {
                 measurements: data.info?.measurements || [],
@@ -112,36 +114,56 @@ export const fetchMeanData = async () => {
 export const fetchTimeRange = async () => {
     /**
      * @api to fetch time range from influxdb for time series visualization
+     * @returns {Object} - earliest and latest time stamps as Unix timestamps (milliseconds)
      */
     const response = await fetch('http://localhost:8000/api/influx/get/timerange');
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json();
+    const data = await response.json();
+    if (!data.earliest || !data.latest) {
+        throw new Error('Invalid time range data received');
+    }
+    return {
+        earliest: data.earliest,
+        latest: data.latest
+    };
 };
 
-export const fetchTimeSeriesData = async (measurement, fields, from, to) => {
+export const fetchTimeSeriesData = async (measurement, fields, earliest, latest) => {
     /**
      * @api to fetch config data for time series visualization
+     * @param {string} measurement - measurement name
+     * @param {Array} fields - array of field names
+     * @param {number} earliest - Unix timestamp in seconds
+     * @param {number} latest - Unix timestamp in seconds
+     * @returns {Object} - time series data
      */
-    const response = await fetch('http://localhost:8000/api/influx/get/timeseries', {
-        method: 'POST',
-        headers: {
-           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          measurement,
-          fields,
-          from,
-          to,
-        }),
-      });
-    
-      if (!response.ok) {
-        throw new Error('Failed to fetch time series data');
-      }
-      return response.json();
-    };
+    try {
+        const response = await fetch('http://localhost:8000/api/influx/get/timeseries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                measurement,
+                fields,
+                from: earliest,
+                to: latest
+            }),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch time series data');
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching time series data:', error);
+        throw error;
+    }
+};
 
 
 export const extractSelectedConfig = (config) => {

@@ -10,6 +10,7 @@ from fastapi import File, UploadFile, Form
 import os
 import json
 from pathlib import Path
+from fastapi import Request
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -197,6 +198,85 @@ async def analyze_data(request: AnalysisRequest):
         return {"analysis": result}
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# time series routes
+@app.get("/api/influx/get/timerange")
+async def get_time_range():
+    """ 
+    Get the earliest and latest timestamp from InfluxDB
+    """
+    try:
+        # get the measurements from influxdb
+        measurements = influx.get_measurements()
+        if not measurements:
+            raise {"message": "No measurements found"}
+        measurement = measurements[0] # get the first measurement
+
+        # get earliest time (first record)
+        earliest_query = f'SELECT * FROM "{measurement}" ORDER BY time ASC LIMIT 1'
+        earliest_result = influx.client.query(earliest_query)
+
+        # get latest time (last record)
+        latest_query = f'SELECT * FROM "{measurement}" ORDER BY time DESC LIMIT 1'
+        latest_result = influx.client.query(latest_query)
+
+        # return the earliest and latest time
+        if earliest_result and latest_result:
+            # get the first point from the result
+            earliest_point = list(earliest_result.get_points())[0]
+            latest_point = list(latest_result.get_points())[0]
+
+            # Convert InfluxDB timestamps to Unix timestamps
+            from datetime import datetime
+            import pytz
+
+            def parse_influx_time(time_str):
+                dt = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%SZ')
+                dt = pytz.utc.localize(dt)
+                return int(dt.timestamp())
+
+            earliest_time = parse_influx_time(earliest_point['time'])
+            latest_time = parse_influx_time(latest_point['time'])
+
+            # return the earliest and latest time
+            return {
+                "earliest": earliest_time,
+                "latest": latest_time
+            }
+        else:
+            raise HTTPException(status_code=404, detail="No resulting time range found")
+        
+    except Exception as e:
+        logger.error(f"Error in get_time_range: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/influx/get/timeseries")
+async def get_timeseries_data(request: Request):
+    """
+    Extract time series configs from influxdb
+    """
+    try:
+        body = await request.json()
+        measurement = body.get('measurement')
+        fields = body.get('fields')
+        from_time = body.get('from')
+        to_time = body.get('to')
+
+        if not all([measurement, fields, from_time, to_time]):
+            raise HTTPException(status_code=400, detail="Missing required parameters")
+
+        # Query InfluxDB for time series data
+        query = f'SELECT {",".join(fields)} FROM {measurement} WHERE time >= {from_time}s AND time <= {to_time}s'
+        result = influx.query(query)
+
+        points = []
+        for point in result.get_points():
+            points.append(point)
+
+        return {"points": points}
+
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

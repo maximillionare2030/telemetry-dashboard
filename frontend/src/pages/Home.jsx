@@ -1,5 +1,5 @@
 // Home.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Flex,
   Breadcrumb,
@@ -19,19 +19,52 @@ import Header from "../components/Header";
 import NavBar from "../components/NavBar";
 import Databox from "../components/stats/Databox";
 import Timeseries from "../components/stats/Timeseries";
+import { fetchInfluxInfo } from "../api/api";
 
 function Home() {
   const { extension } = useParams();
   const component = extension
     ? extension.charAt(0).toUpperCase() + extension.slice(1)
     : "";
-  const margin = "1.0rem";
 
-  const [selectedConfig, setSelectedConfig] = useState(null); // State for selected config values
+  const [selectedConfig, setSelectedConfig] = useState(null);
 
-  const handleConfigSelectionChange = (selectedOptions) => {
-    setSelectedConfig(selectedOptions); // Update the selected config options
-  };
+  // fetch configuration from influx upon initialization
+  useEffect(() => {
+    const initializeConfig = async () => {
+      try {
+        const { info } = await fetchInfluxInfo();
+
+        // check that measurements exist
+        if (info?.measurements?.length > 0) {
+          const firstMeasurement = info.measurements[0];
+          const firstFields = info.fields[firstMeasurement] || [];
+          
+          // function to set the selected config
+          setSelectedConfig({
+            databases: {
+              defaultDB: {
+                isSelected: true,
+                measurements: {
+                  [firstMeasurement]: {
+                    isSelected: true,
+                    fields: firstFields.reduce((acc, field) => ({
+                      ...acc,
+                      [field]: { isSelected: true }
+                    }), {})
+                  }
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing config:', error);
+      }
+    };
+
+    initializeConfig();
+  }, []);
 
   return (
     <Flex width="100%" height="100vh">

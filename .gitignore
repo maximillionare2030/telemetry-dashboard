@@ -78,3 +78,4 @@ htmlcov/
 .tox/
 coverage.xml
 *.cover
+.vercel

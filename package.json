@@ -3,10 +3,16 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@grafana/ui": "^11.3.1",
-    "axios": "^1.7.9",
-    "azd": "^0.0.1",
-    "docker": "^1.0.0"
+    "@grafana/data": "^10.0.0",
+    "@grafana/runtime": "^10.0.0",
+    "@grafana/ui": "^10.0.0",
+    "axios": "^1.7.9"
+  },
+  "scripts": {
+    "install-frontend": "cd frontend && npm install",
+    "build": "npm run install-frontend && cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "dev": "cd frontend && npm start"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.14"
