@@ -19,6 +19,21 @@ const Chat = () => {
         scrollToBottom();
     }, [messages]);
 
+    // format ai response
+    const formatAIResponse = (content) => {
+        if (!content) return '';
+
+        // add line breaks
+        return content
+            // Add breaks after bullet points
+            .replace(/([•\-\*]\s.*?)(?=(?:[•\-\*]|\d+\.|\n|$))/g, '$1\n\n')
+            // Add breaks after numbered lists
+            .replace(/(\d+\.\s.*?)(?=(?:[•\-\*]|\d+\.|\n|$))/g, '$1\n\n')
+            // Remove extra line breaks
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+    }
+
     // handle user input asynchronously
     const handleSubmit = async (e) => {
         // cancel default form behavior
@@ -36,9 +51,13 @@ const Chat = () => {
         try {
             // analyze user message in the backend
             const data = await analyzeData(input);
-            const aiMessage = { role: 'assistant', content: data.analysis };
+            const formattedContent = formatAIResponse(data.analysis);
+            const aiMessage = { 
+                role: 'assistant', 
+                content: formattedContent
+            };
             setMessages(prev => [...prev, aiMessage]);
-            console.log("response after data analysis: ", data.analysis);
+            console.log("response after data analysis: ", formattedContent);
         } catch (error) {
             console.error('Error: ', error);
             setMessages(prev => [...prev, {
