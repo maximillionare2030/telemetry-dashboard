@@ -1,36 +1,70 @@
-# The following program utilizes a FastAPI backend and ReactJS frontend
-Make sure to install InfluxDB separately using this [website](https://www.influxdata.com/downloads/).
+# FSAE Telemetry Dashboard
+Visualize telemetry data from the race car in real time, as the race happens. The dashboard performs the following functions:
+1. Visualize time series data 
+2. Forecast errors in historic racing data (ex: from previous laps)
+3. Make decisions with an intelligent chatbot trained with context from previous Formula Races and FSAE guidelines
 
-## 1. Install required dependencies
-    
-pip install -r requirements.txt
-npm install package.json
+<hr/>
 
-In order to successfully run the development build of the dashboard do the following in separate terminals:
+Download all dependencies
+`pip install -r requirements.txt`
+#  Terminal 1: Run InfluxDB (localhost:8086)
 
-- Terminal 1: Start the backend (localhost:8000)
+###  Start InfluxDB 
+`./usr/bin/influxd -config influxdb.conf`
 
-cd backend
-python main.py runserver
+### Inilialize DB
+Open a new terminal and run:
+`cd ~/telemetry-dashboard/InfluxData/influxdb/influxdb-1.8.10-1`
+`./usr/bin/influx`
 
-#Terminal 2: Start the Frontend (localhost:3000)
+In the same terminal, run the following to create a local database:
+`CREATE DATABASE telemetry`
+In general, the following command is used to create a database:
+`CREATE DATABASE <database_name>`
 
-cd frontend
-npm start
+Check the available databases:
+`SHOW databases`
 
-#Terminal 3: Start the InfluxDB Engine (localhost:8086)
+Switch to the database:
+`USE telemetry`
+In general, the following command is used to switch to a database:
+`USE <database_name>`
 
-cd InfluxData\influxdb/influxdb-1.8.10-1
-.\influxd  # start the InfluxDB
+Write to the database:
+`INSERT motorData,location=us-west, temperature=82`
+In general, the following command is used to write to a database:
+`INSERT <measurement_name>,<tag_name>=<tag_value>,<field_name>=<field_value>`
+
+Check what is inside of the database:
+`SHOW MEASUREMENTS` will show the measurements in the database (ex: motorData, controllerData, etc.)
+`SHOW FIELD KEYS ON <measurement_name>` will show the fields and field type of the measurement
+`SHOW TAG KEYS ON <measurement_name>` will show the tags and tag type of the measurement
+`SELECT * FROM <measurement_name> LIMIT 10` will show the first 10 rows of the measurement
+
+example: 
+`SELECT * FROM "Kilozott_Dummy_Data" LIMIT 10`
+
+### Useful commands
+DROP DATABASE <database_name>  # drop the database (delete)
+clear <database_name>  # clear tables
 
 
+# Terminal 2: Run the backend (localhost:8000)
 
-#When all three are running, visit localhost:3000 and choose
+### Run the initialization script to upload data to the database.
+In a new terminal:
+`python backend/scripts/init_data.py`
 
-1.Database
-2.Measurement
-3.Fieldset
+### Start the backend server
+In a new terminal:
+`python backend/main.py` 
+or
+`uvicorn backend.main:app --reload`
 
-#To display relevant data
 
+# Terminal 3: Run the frontend (localhost:3000)
+`cd frontend`
+`npm run start`
 
+The default endpoint is `localhost:3000/home`

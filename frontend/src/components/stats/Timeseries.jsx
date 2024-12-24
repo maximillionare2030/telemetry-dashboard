@@ -131,10 +131,24 @@ const Timeseries = ({ selectedConfig }) => {
             x: {
                 type: 'time',
                 time: {
-                    unit: 'second',
+                    unit: 'auto',
                     displayFormats: {
-                        second: 'HH:mm:ss'
+                        millisecond: 'HH:mm:ss.SSS',
+                        second: 'HH:mm:ss',
+                        minute: 'HH:mm',
+                        hour: 'HH:mm',
+                        day: 'MMM D',
+                        week: 'MMM D',
+                        month: 'MMM YYYY',
+                        quarter: 'MMM YYYY',
+                        year: 'YYYY'
                     }
+                },
+                ticks: {
+                    autoSkip: true,
+                    autoSkipPadding: 75,
+                    maxRotation: 0,
+                    minRotation: 0
                 }
             },
             y: {
