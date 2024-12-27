@@ -78,7 +78,8 @@ class Analysis:
         # create embeddings
         # used for similarity search to extract relevant information
         embeddings = OpenAIEmbeddings()
-        return FAISS.from_documents(texts, embeddings)  # Return the vector store
+        # store information as a searchable vector database
+        return FAISS.from_documents(texts, embeddings) 
 
     def _format_data_for_analysis(self, data):
         if isinstance(data, pd.DataFrame):
@@ -129,46 +130,91 @@ class Analysis:
             data_summary = self._format_data_for_analysis(all_data)
             prompt = self._create_analysis_prompt(data_summary, message)
 
-            # Get relevant sources from knowledge base
-            # return top 3 most similar sources
-            sources = self.knowledge_base.similarity_search(prompt, k=3)
-
-            # format each document in sources
-            sources = [
-                {
-                    "title": os.path.basename(doc.metadata['source']), # assign filename to title
-                    "content": doc.page_content.strip(), # return chunk of content
-                    "page": doc.metadata['page'] # return page number
-
-                }
-                for doc in sources
-            ]
-
-            # run the analysis
+            # Get relevant sources and run analysis first
             qa_chain = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
                 retriever=self.knowledge_base.as_retriever(),
                 return_source_documents=True 
             )
-            analysis = qa_chain.invoke(prompt)["result"]
+            
+            try:
+                # run the analysis
+                chain_response = qa_chain.invoke(prompt)
+                analysis = chain_response["result"]
+                source_docs = chain_response.get("source_documents", [])
+                
+                if not source_docs:
+                    logger.warning("No source documents returned from QA chain")
+                
+                # Format sources with content actually used in analysis
+                sources = []
+                for doc in source_docs:
+                    # Clean the content by removing empty lines and headers/footers
+                    content_lines = doc.page_content.split('\n')
+                    cleaned_lines = []
+                    
+                    # remove empty lines and headers/footers
+                    for line in content_lines:
+                        line = line.strip()
+                        # Skip empty lines and headers/footers
+                        if (not line or 
+                            "Formula SAE® Rules" in line or 
+                            "© 2024" in line or
+                            line.startswith("Page") or
+                            len(line) < 20):
+                            continue
+                        cleaned_lines.append(line)
+                    
+                    # Find lines that appear in the analysis
+                    relevant_lines = []
 
-            # extract specific lines for sources
-            for index, source in enumerate(sources):
-                # find lines from the source used for analysis
-                source_lines = source['content'].split('\n')
-                # extract lines relevant to analysis
-                relevant_lines = [
-                    line.strip for line in source_lines
-                    if line.strip and (line.strip() in analysis)
-                ]
-                # add relevant lines to sources otherwise add the first line of the source
-                sources[index]['content'] = '\n'.join(relevant_lines) if relevant_lines else source_lines[0]
-
-            return {
-                "analysis": analysis,
-                "sources": sources
-            }
+                    # break up analysis into sentences
+                    analysis_sentences = [s.strip() for s in analysis.split('.') if s.strip()]
+                    
+                    # extract relevant line segments from the lines
+                    for line in cleaned_lines:
+                        # Check if any part of the line is used in any analysis sentence
+                        for sentence in analysis_sentences:
+                            # Look for any part of the line that is in the analysis sentence
+                            if any(
+                                segment in sentence 
+                                for segment in [line[i:i+10] # check if part of line matches segment
+                                for i in range(len(line)-9)]
+                                if len(segment) >= 10 # check if segment is at least 10 characters long
+                            ):
+                                # if a line matches a sentence, add it to the relevant lines
+                                relevant_lines.append(line)
+                                logger.info(f"Found relevant line: {line[:40]}...")
+                                break
+                    
+                    # if relevant lines are found, add them to the sources
+                    if relevant_lines:
+                        sources.append({
+                            "title": os.path.basename(doc.metadata['source']),
+                            "content": f"{relevant_lines[0][:40]}..." if len(relevant_lines[0]) > 40 else relevant_lines[0],
+                            "page": f"Page {doc.metadata['page']}"
+                        })
+                
+                if not sources:
+                    logger.warning("No relevant sources found for the analysis")
+                    sources = [{
+                        "title": "Note",
+                        "content": "No specific rule references found",
+                        "page": "N/A"
+                    }]
+                
+                return {
+                    "analysis": analysis,
+                    "sources": sources
+                }
+                
+            except Exception as e:
+                logger.error(f"Error processing sources: {str(e)}")
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Error extracting relevant content: {str(e)}"
+                )
             
         except Exception as e:
             logger.error(f"Analysis error: {str(e)}")

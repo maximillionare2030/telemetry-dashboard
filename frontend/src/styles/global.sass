@@ -70,12 +70,20 @@ body, html
 .subtext
     @include subtext
 
-p
+@mixin text
     font-size: $text-size
     font-weight: 400
     color: $text
     background: none
     line-height: 1.5
+
+p
+    @include text
+
+ul 
+    li
+        line-height: 1.5
+        @include text
 
 i
     background: none
