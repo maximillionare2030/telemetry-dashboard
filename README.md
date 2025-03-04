@@ -3,6 +3,7 @@ Visualize telemetry data from the race car in real time, as the race happens. Th
 1. Visualize time series data 
 2. Forecast errors in historic racing data (ex: from previous laps)
 3. Make decisions with an intelligent chatbot trained with context from previous Formula Races and FSAE guidelines
+[![Screenshot of telemetry dashboard](images/telemetryDashboardScreenshot.png)]
 
 <hr/>
 

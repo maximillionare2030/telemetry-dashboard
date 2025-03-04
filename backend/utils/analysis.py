@@ -231,13 +231,20 @@ class Analysis:
         2. Showing concerning trends or patterns of behavior over time
         3. Requiring immediate attention
 
-        Format the response a concise, short structured analysis with clear recommendations. 
+        Formatting Rules: Format the response a concise, short structured analysis with clear recommendations. 
         Assume that the driver will be referencing this analysis during a live race and need to 
         make decisions within within minutes. The information should be concise and easy to digest.
-        Ensure that the response is readable. It should not be in paragraph form. Rather, ensure that
-        the response is in list format either in bullet points or in a numbered list. 
+        Ensure that the response is readable. Only the first 1-3 sentences should be in paragraph form
+        and should summarize the analysis. The next parts of the response should ONLY be in listed format,
+        ensure that the response is in list format either in bullet points or in a numbered list. 
         The response shall not surpass 100 words. Also ensure that you are using line breaks to 
         separate the different sections of the response.
+
+        Context: Assume that the context is that an experienced engineer is reviewing data after a race and wants to 
+        know what parts of the vehicle they need to fix for the next race. Assume that there is a time constraint
+        and they need to make decisions quickly. Make the recommendations extremely clear and non-generic. After 
+        reading the response, the engineer should be able to know exactly what parts of the vehicle they need to 
+        fix and how to fix them. Ensure that the formatting follows the rules under "Formatting Rules".
 
         if the user asks for something that strays from this prompt, provide a response only if the 
         user asks for something that is relevant to the telemetry data. If their question is irrelevant,

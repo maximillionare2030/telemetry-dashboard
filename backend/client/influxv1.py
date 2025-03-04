@@ -2,11 +2,12 @@ from influxdb import InfluxDBClient
 import pandas as pd
 from pathlib import Path
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class InfluxDBHandler:
-    def __init__(self, host='localhost', port=8086, database='telemetry'):
+    def __init__(self, host, port=8086, database='telemetry'):
         self.host = host
         self.port = port
         self.database = database
@@ -14,9 +15,9 @@ class InfluxDBHandler:
             host=self.host,
             port=self.port,
             database=self.database,
-            username='',
-            password='',
-            ssl=False,
+            username=os.getenv('INFLUXDB_USER', ''),
+            password=os.getenv('INFLUXDB_PASSWORD', ''),
+            ssl=True,
         )
         try:
             # Get list of databases first
@@ -94,7 +95,6 @@ class InfluxDBHandler:
         except Exception as e:
             logger.error(f"Query error: {str(e)}")
             return None
-
 
 
 

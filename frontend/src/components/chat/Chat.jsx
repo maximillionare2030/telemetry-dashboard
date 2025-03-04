@@ -117,9 +117,6 @@ const Chat = () => {
                                     {/* // analysis */}
                                     <div 
                                         className="row card-heading"
-                                        style={{
-                                            marginBottom: '8px'
-                                        }}
                                     >
                                         <i className="fa-solid fa-robot" style={{color: 'white'}}></i>
                                         <div className="subtext">Analysis</div>

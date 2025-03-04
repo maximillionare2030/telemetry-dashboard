@@ -26,7 +26,8 @@ origins = [
     "localhost:61810",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:61810",
-    "http://localhost:8000"
+    "http://localhost:8000",
+    "https://telemetry-jaslavie-jasmine-wus-projects.vercel.app", 
 ]
 
 app.add_middleware(
@@ -39,10 +40,10 @@ app.add_middleware(
 
 # Initialize services with simplified config
 influx = InfluxDBHandler(
-    host='localhost',
-    port=8086,
-    database='telemetry'
-)
+    host=os.getenv('INFLUXDB_HOST', 'localhost'),
+    port=int(os.getenv('INFLUXDB_PORT', 8086)),
+    database=os.getenv('INFLUXDB_DATABASE', 'telemetry')
+) if not os.getenv('VERCEL_ENV') else None
 
 analyzer = Analysis()
 
@@ -61,7 +62,9 @@ async def read_root():
 
 # Influx routes
 @app.get("/api/influx/get/info")
-async def query_info():
+async def get_info():
+    if os.getenv('VERCEL_ENV'):
+        return {"message": "Please run InfluxDB locally"}
     """ 
     Return info about the influxdb measurements
     """

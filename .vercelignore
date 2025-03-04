@@ -1,0 +1,6 @@
+.venv/
+InfluxData/
+data/
+__pycache__/
+*.pyc
+*.csv

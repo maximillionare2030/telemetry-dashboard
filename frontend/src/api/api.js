@@ -1,8 +1,11 @@
 // handle api requests to the backend
 
+// Use environment variables to switch between local and production URLs
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 export const fetchInfluxInfo = async () => {
     try {
-        const response = await fetch('http://localhost:8000/api/influx/get/info');
+        const response = await fetch(`${BASE_URL}/api/influx/get/info`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -25,7 +28,7 @@ export const fetchPoints = async (measurementName) => {
     /**
      * @api To fetch points from InfluxDB (JSON format)
      */
-    const response = await fetch('http://localhost:8000/api/influx/get/points', {
+    const response = await fetch(`${BASE_URL}/api/influx/get/points`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -49,7 +52,7 @@ export const uploadData = async (file) => {
     formData.append('file', file);
 
     // send the form data to the backend
-    const response = await fetch('http://localhost:8000/api/influx/upload', {
+    const response = await fetch(`${BASE_URL}/api/influx/upload`, {
         method: 'POST',
         body: formData,
     })
@@ -66,7 +69,7 @@ export const uploadData = async (file) => {
 export const analyzeData = async (message) => {
     try {
         // send message from user to the backend
-        const response = await fetch('http://localhost:8000/api/analysis/analyze', {
+        const response = await fetch(`${BASE_URL}/api/analysis/analyze`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -99,7 +102,7 @@ export const fetchMeanData = async () => {
      * @api to fetch mean of the data from influxdb
      */
     try {
-        const response = await fetch('http://localhost:8000/api/influx/get/mean');
+        const response = await fetch(`${BASE_URL}/api/influx/get/mean`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -116,7 +119,7 @@ export const fetchTimeRange = async () => {
      * @api to fetch time range from influxdb for time series visualization
      * @returns {Object} - earliest and latest time stamps as Unix timestamps (milliseconds)
      */
-    const response = await fetch('http://localhost:8000/api/influx/get/timerange');
+    const response = await fetch(`${BASE_URL}/api/influx/get/timerange`);
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
@@ -140,7 +143,7 @@ export const fetchTimeSeriesData = async (measurement, fields, earliest, latest)
      * @returns {Object} - time series data
      */
     try {
-        const response = await fetch('http://localhost:8000/api/influx/get/timeseries', {
+        const response = await fetch(`${BASE_URL}/api/influx/get/timeseries`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
